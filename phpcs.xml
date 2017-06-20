@@ -1,0 +1,12 @@
+<?xml version="1.0"?>
+<ruleset name="Buffer">
+    <description>The coding standard for PHP code at Buffer</description>
+
+    <!-- Include most of the PSR2 standard -->
+    <rule ref="PSR2">
+        <exclude name="PSR1.Classes.ClassDeclaration.MissingNamespace"/>
+        <exclude name="PSR1.Files.SideEffects.FoundWithSymbols"/>
+        <exclude name="PSR1.Classes.ClassDeclaration.MultipleClasses"/>
+        <exclude name="Squiz.Classes.ValidClassName.NotCamelCaps"/>
+    </rule>
+</ruleset>
