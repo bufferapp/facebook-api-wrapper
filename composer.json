@@ -1,15 +1,25 @@
 {
-    "require": {
-        "php": ">=5.6.4",
-        "facebook/graph-sdk": "^5.5"
-    },
-    "require-dev": {
-        "phpunit/phpunit": "^5.7",
-        "mockery/mockery": "^0.9.9"
-    },
-		"autoload": {
-			"psr-4": {
-				"Buffer\\Facebook\\": "Facebook/"
-			}
+	"name": "bufferapp/facebook-api-wrapper",
+	"description": "A PHP SDK for the Facebook API",
+	"keywords": ["facebook", "facebook api", "facebook php"],
+	"type": "package",
+	"license": "Apache",
+	"authors": [{
+		"name": "Tigran Hakobyan"
+	}],
+	"require": {
+		"php": ">=5.6.4",
+		"facebook/graph-sdk": "^5.5"
+	},
+	"require-dev": {
+		"phpunit/phpunit": "^5.7",
+		"mockery/mockery": "^0.9.9"
+	},
+	"autoload": {
+		"psr-4": {
+			"Buffer\\Facebook\\": "Facebook/"
 		}
+	},
+	"version": "1.0.0",
+	"minimum-stability": "dev"
 }
