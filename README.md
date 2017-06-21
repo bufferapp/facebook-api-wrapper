@@ -28,4 +28,4 @@ You're welcome to contribute to this repo.
 
 ## Did you find a bug?
 
-If you found a bug then please go ahead and [open a GitHub issue](https://github.com/bufferapp/facebook-api-wrapper/issues), and we'll try to figure out what's going on.
+If you found a bug then please go ahead and [open a GitHub issue](https://github.com/bufferapp/facebook-api-wrapper/issues), and we'll try to fix it as soon as possible.
