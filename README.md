@@ -4,13 +4,13 @@ Buffer's Facebook PHP API wrapper
 Our FB API wrapper library provides helpful utility methods to work with [FB Graph API](https://developers.facebook.com/docs/graph-api).
 
 Methods supported in the wrapper:
-- setAccessToken($accessToken)
-- getPageInsightsMetricsData($pageId, $insightsMetrics, $since, $until)
-- getPagePostGraphMetricsData($pageId, $postId, $metrics)
-- getPageBatchPostsGraphMetricsData($postIds, $metrics)
-- getPagePostInsightsMetricData($pageId, $postId, $insightsMetrics)
-- getPageBatchPostsInsightsMetricData($postIds, $insightsMetrics)
-- getPagePosts($pageId, $since, $until, $limit = 100)
+- `setAccessToken($accessToken)`
+- `getPageInsightsMetricsData($pageId, $insightsMetrics, $since, $until)`
+- `getPagePostGraphMetricsData($pageId, $postId, $metrics)`
+- `getPageBatchPostsGraphMetricsData($postIds, $metrics)`
+- `getPagePostInsightsMetricData($pageId, $postId, $insightsMetrics)`
+- `getPageBatchPostsInsightsMetricData($postIds, $insightsMetrics)`
+- `getPagePosts($pageId, $since, $until, $limit = 100)`
 
 
 Tests
