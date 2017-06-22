@@ -13,7 +13,7 @@ Methods supported in the wrapper:
 - `getPagePosts($pageId, $since, $until, $limit = 100)`
 
 
-Requirenment & Installation
+Requirement & Installation
 -----
 This package requires PHP 5.6 or higher.
 
