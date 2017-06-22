@@ -13,6 +13,22 @@ Methods supported in the wrapper:
 - `getPagePosts($pageId, $since, $until, $limit = 100)`
 
 
+Installation
+-----
+This package is require PHP 5.6 or higher.
+
+Open your composer.json file, and add the new required package.
+```
+   "bufferapp/facebook-api-wrapper": "^1.0.0"
+```
+Next, open a terminal and run.
+```
+composer update
+```
+
+Next, you can reference the wrapper anywhere as `use Buffer\Facebook\Facebook;`.
+
+
 Tests
 -----
 Before running the tests make sure you have installed all the dependancies with
