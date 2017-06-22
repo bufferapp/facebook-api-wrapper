@@ -15,6 +15,8 @@ Methods supported in the wrapper:
 
 Tests
 -----
+Before running the tests make sure you have installed all the dependancies with
+`composer install`.
 
 The tests can be executed by using this command from the base directory:
 
