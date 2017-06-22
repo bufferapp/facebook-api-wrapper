@@ -18,7 +18,7 @@ Tests
 
 The tests can be executed by using this command from the base directory:
 
-    `bin/phpunit -c phpunit.xml --bootstrap vendor/autoload.php`
+    bin/phpunit -c phpunit.xml --bootstrap vendor/autoload.php
 
 Contributing
 ----
