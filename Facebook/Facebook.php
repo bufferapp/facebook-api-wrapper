@@ -184,22 +184,31 @@ class Facebook
             $params["until"] = $until;
         }
 
-        // TODO: If it's a backfill we should think about paginating because it's very
-        // possible that the page has sent more than 100 posts within 30 days range
-        $response = $this->sendRequest("GET", "/{$pageId}/posts", $params);
+        $posts = [];
+        $needToRequestMorePages = true;
+        $requestURL = "/{$pageId}/posts";
 
-        if (!empty($response)) {
-            $decodedBody = $response->getDecodedBody();
-            if (!empty($decodedBody["data"]) && is_array($decodedBody["data"])) {
-                $publishedPosts = $decodedBody["data"];
-                foreach ($publishedPosts as $post) {
-                    $posts[$post["id"]] = $post["created_time"];
+        while ($needToRequestMorePages) {
+            $response = $this->sendRequest("GET", $requestURL, $params);
+
+            if (!empty($response)) {
+                $decodedBody = $response->getDecodedBody();
+                if (!empty($decodedBody["data"]) && is_array($decodedBody["data"])) {
+                    $publishedPosts = $decodedBody["data"];
+                    foreach ($publishedPosts as $post) {
+                        $posts[$post["id"]] = $post["created_time"];
+                    }
                 }
-                return $posts;
+                if (isset($decodedBody['paging'])) {
+                    $requestURL = $decodedBody['paging']['next'] ? $decodedBody['paging']['next'] : null;
+                    $needToRequestMorePages = true;
+                } else {
+                    $needToRequestMorePages = false;
+                }
             }
         }
 
-        return [];
+        return $posts;
     }
 
     /*

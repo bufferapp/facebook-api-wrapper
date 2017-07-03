@@ -28,7 +28,6 @@ class FacebookTest extends PHPUnit_Framework_TestCase
         $this->facebook->setFacebookLibrary($mockedFacebookLibrary);
 
         $this->assertTrue($this->facebook->setAccessToken('test_token'));
-
     }
 
     public function testSetAccessTokenWithNullToken()
@@ -67,8 +66,8 @@ class FacebookTest extends PHPUnit_Framework_TestCase
                     'period' => 'lifetime',
                     'values' => [
                         0 => [
-                                'value' => 444,
-                                'end_time' => '2017-04-27T07:00:00+0000',
+                            'value' => 444,
+                            'end_time' => '2017-04-27T07:00:00+0000',
                         ],
                         1 => [
                             'value' => 555,
@@ -85,8 +84,8 @@ class FacebookTest extends PHPUnit_Framework_TestCase
                     'period' => 'week',
                     'values' => [
                         0 => [
-                                'value' => 444,
-                                'end_time' => '2017-04-27T07:00:00+0000',
+                            'value' => 444,
+                            'end_time' => '2017-04-27T07:00:00+0000',
                         ],
                         1 => [
                             'value' => 555,
@@ -151,7 +150,6 @@ class FacebookTest extends PHPUnit_Framework_TestCase
             strtotime("now")
         );
         $this->assertEquals($insightsData, []);
-
     }
 
     public function testGetPageInsightsMetricsDataShouldReturnEmptyWhenDataIsNull()
@@ -176,7 +174,6 @@ class FacebookTest extends PHPUnit_Framework_TestCase
             strtotime("now")
         );
         $this->assertEquals($insightsData, []);
-
     }
 
     public function testGetPageInsightsMetricsDataShouldUseRightSinceAndUntil()
@@ -228,7 +225,6 @@ class FacebookTest extends PHPUnit_Framework_TestCase
             $since,
             $until
         );
-
     }
 
     public function testGetPagePostGraphMetricsData()
@@ -271,8 +267,6 @@ class FacebookTest extends PHPUnit_Framework_TestCase
         $this->assertEquals($graphData['reactions'], 123);
         $this->assertEquals($graphData['likes'], 30);
         $this->assertEquals($graphData['shares'], 10);
-
-
     }
 
     // Test the case when shares count is not in the response.
@@ -309,8 +303,6 @@ class FacebookTest extends PHPUnit_Framework_TestCase
         $this->assertEquals($graphData['comments'], 12);
         $this->assertEquals($graphData['reactions'], 123);
         $this->assertEquals($graphData['shares'], 0);
-
-
     }
 
     public function testGetPagePostGraphMetricsShouldReturnEmptyIfNoResponse()
@@ -368,7 +360,7 @@ class FacebookTest extends PHPUnit_Framework_TestCase
             ->once()
             ->andReturn($decodedGraphResponseData1)
             ->getMock()
-        ;
+            ;
         $responseMock2 = m::mock('\Facebook\FacebookResponse')
             ->shouldReceive('getDecodedBody')
             ->once()
@@ -458,7 +450,7 @@ class FacebookTest extends PHPUnit_Framework_TestCase
             ->once()
             ->andReturn($decodedResponseData1)
             ->getMock()
-        ;
+            ;
         $responseMock2 = m::mock('\Facebook\FacebookResponse')
             ->shouldReceive('getDecodedBody')
             ->once()
@@ -568,10 +560,10 @@ class FacebookTest extends PHPUnit_Framework_TestCase
     {
         $facebook = new Facebook();
         $responseMock = m::mock('\Facebook\FacebookResponse')
-             ->shouldReceive('getDecodedBody')
-             ->once()
-             ->andReturn([])
-             ->getMock();
+            ->shouldReceive('getDecodedBody')
+            ->once()
+            ->andReturn([])
+            ->getMock();
         $facebookMock = m::mock('\Facebook\Facebook');
         $facebookMock->shouldReceive('sendRequest')->once()->andThrow($responseMock);
         $facebook->setFacebookLibrary($facebookMock);
@@ -607,10 +599,10 @@ class FacebookTest extends PHPUnit_Framework_TestCase
 
         $facebook = new Facebook();
         $responseMock = m::mock('\Facebook\FacebookResponse')
-             ->shouldReceive('getDecodedBody')
-             ->once()
-             ->andReturn($decodedBody)
-             ->getMock();
+            ->shouldReceive('getDecodedBody')
+            ->once()
+            ->andReturn($decodedBody)
+            ->getMock();
         $facebookMock = m::mock('\Facebook\Facebook');
         $facebookMock->shouldReceive('sendRequest')->once()->andThrow($responseMock);
         $facebook->setFacebookLibrary($facebookMock);
@@ -641,10 +633,10 @@ class FacebookTest extends PHPUnit_Framework_TestCase
 
         $facebook = new Facebook();
         $responseMock = m::mock('\Facebook\FacebookResponse')
-             ->shouldReceive('getDecodedBody')
-             ->once()
-             ->andReturn($decodedBody)
-             ->getMock();
+            ->shouldReceive('getDecodedBody')
+            ->once()
+            ->andReturn($decodedBody)
+            ->getMock();
         $facebookMock = m::mock('\Facebook\Facebook');
 
         $since  = "1493826552";
@@ -660,4 +652,54 @@ class FacebookTest extends PHPUnit_Framework_TestCase
         $facebook->getPagePosts(self::FB_PAGE_ID, $since, $until, 100);
     }
 
+    public function testShouldKeepMakingCallsWhenThereArePaginatedResults()
+    {
+        $pagedResponse = [
+            'data' => [
+                [
+                    'created_time' => '2017-04-20T16:21:23+0000',
+                    'id' => '511222705738444_744511765742869'
+                ]
+            ],
+            'paging' => [
+                'next' => 'https://next_request'
+            ]
+        ];
+        $notPagedResponse = [
+            'data' => [
+                [
+                    'created_time' => '2017-04-22T18:21:23+0000',
+                    'id' => '511222705738444_744511022112069'
+                ]
+            ]
+        ];
+        $facebook = new Facebook();
+        $responsePagedMock = m::mock('\Facebook\FacebookResponse')
+            ->shouldReceive('getDecodedBody')
+            ->once()
+            ->andReturn($pagedResponse)
+            ->getMock();
+        $responseNotPagedMock = m::mock('\Facebook\FacebookResponse')
+            ->shouldReceive('getDecodedBody')
+            ->once()
+            ->andReturn($notPagedResponse)
+            ->getMock();
+
+        $since = "1493826552";
+        $until = "1496418552";
+        $params = [
+            "limit" => 100,
+            "until" => $until,
+            "since" => $since,
+        ];
+
+        $expectedGetParamsFirstCall = ["GET", "/2222222/posts", $params];
+        $expectedGetParamsSecondCall = ["GET", "https://next_request", $params];
+        $facebookMock = m::mock('\Facebook\Facebook');
+        $facebookMock->shouldReceive('sendRequest')->withArgs($expectedGetParamsFirstCall)->once()->andReturn($responsePagedMock);
+        $facebookMock->shouldReceive('sendRequest')->withArgs($expectedGetParamsSecondCall)->once()->andReturn($responseNotPagedMock);
+
+        $facebook->setFacebookLibrary($facebookMock);
+        $this->assertCount(2, $facebook->getPagePosts(self::FB_PAGE_ID, $since, $until, 100));
+    }
 }
