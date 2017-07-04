@@ -173,39 +173,20 @@ class Facebook
     {
         $posts = [];
 
-        $params = [
-            "limit" => $limit,
-            "since" => strtotime("yesterday"),
-            "until" => strtotime("now")
-        ];
+        $since = $since ? $since : strtotime("yesterday");
+        $until = $until ? $until : strtotime("now");
 
-        if (!is_null($since) && !is_null($until)) {
-            $params["since"] = $since;
-            $params["until"] = $until;
-        }
 
         $posts = [];
-        $needToRequestMorePages = true;
-        $requestURL = "/{$pageId}/posts";
+        $response = $this->client->get("/{$pageId}/posts?since={$since}&until={$until}&limit={$limit}");
+        $graphEdge = $response->getGraphEdge();
 
-        while ($needToRequestMorePages) {
-            $response = $this->sendRequest("GET", $requestURL, $params);
-
-            if (!empty($response)) {
-                $decodedBody = $response->getDecodedBody();
-                if (!empty($decodedBody["data"]) && is_array($decodedBody["data"])) {
-                    $publishedPosts = $decodedBody["data"];
-                    foreach ($publishedPosts as $post) {
-                        $posts[$post["id"]] = $post["created_time"];
-                    }
-                }
-                if (isset($decodedBody['paging'])) {
-                    $requestURL = $decodedBody['paging']['next'] ? $decodedBody['paging']['next'] : null;
-                    $needToRequestMorePages = true;
-                } else {
-                    $needToRequestMorePages = false;
-                }
+        while ($graphEdge) {
+            foreach ($graphEdge as $post) {
+                $posts[$post->getField("id")] = $post->getField("created_time")->format(DATE_ISO8601);
             }
+
+            $graphEdge = $this->client->next($graphEdge);
         }
 
         return $posts;
