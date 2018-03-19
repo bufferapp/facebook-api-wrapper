@@ -786,4 +786,63 @@ class FacebookTest extends PHPUnit_Framework_TestCase
         $facebook->setFacebookLibrary($facebookMock);
         $facebook->getUserMedias(self::IG_USER_ID, $since, $until, 100);
     }
+
+    public function testGetBatchMediaBasicData()
+    {
+        $facebook = new Facebook();
+
+        $decodedGraphResponseData1 = [
+            'caption' => 'Test Caption 1',
+            'media_type' => 'IMAGE',
+        ];
+
+        $decodedGraphResponseData2 = [
+            'caption' => 'Test Caption 2',
+            'media_type' => 'VIDEO',
+        ];
+
+        $responseMock1 = m::mock('\Facebook\FacebookResponse')
+            ->shouldReceive('getDecodedBody')
+            ->once()
+            ->andReturn($decodedGraphResponseData1)
+            ->getMock()
+            ;
+        $responseMock2 = m::mock('\Facebook\FacebookResponse')
+            ->shouldReceive('getDecodedBody')
+            ->once()
+            ->andReturn($decodedGraphResponseData2)
+            ->getMock();
+
+        $getIteratorMock = new ArrayIterator([
+            "11111_22222" => $responseMock1,
+            "33333_444444" => $responseMock2
+        ]);
+
+        $responseBatchMock = m::mock('\Facebook\FacebookBatchResponse')
+            ->shouldReceive('getIterator')
+            ->once()
+            ->andReturn($getIteratorMock)
+            ->getMock();
+
+        $requestMock1 = m::mock('\Facebook\FacebookRequest');
+        $requestMock2 = m::mock('\Facebook\FacebookRequest');
+
+        $mediaIds = ['11111_22222', '33333_444444'];
+        $facebookMock = m::mock('\Facebook\Facebook');
+        $facebook->setFacebookLibrary($facebookMock);
+
+
+        $facebookMock->shouldReceive('request')->twice()->andReturn($requestMock1, $requestMock2);
+
+        $facebookMock->shouldReceive('sendBatchRequest')->once()->andReturn($responseBatchMock);
+
+        $graphData = $facebook->getBatchMediaBasicData($mediaIds, ['caption', 'media_type']);
+
+        $this->assertEquals($graphData['11111_22222']['caption'], 'Test Caption 1');
+        $this->assertEquals($graphData['11111_22222']['media_type'], 'IMAGE');
+
+
+        $this->assertEquals($graphData['33333_444444']['caption'], 'Test Caption 2');
+        $this->assertEquals($graphData['33333_444444']['media_type'], 'VIDEO');
+    }
 }
