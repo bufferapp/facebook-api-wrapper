@@ -218,7 +218,7 @@ class Facebook
     }
 
     /*
-     * Get Instagram medias sent within since and until date times.
+     * Get Instagram medias' basic fields.
      */
     public function getBatchMediaBasicData($mediaIds, $fields)
     {
