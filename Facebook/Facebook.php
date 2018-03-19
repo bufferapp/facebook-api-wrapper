@@ -193,6 +193,55 @@ class Facebook
     }
 
     /*
+     * Get Instagram medias sent within since and until date times.
+     */
+    public function getUserMedias($pageId, $since = null, $until = null, $limit = 100)
+    {
+        $posts = [];
+
+        $since = $since ? $since : strtotime("yesterday");
+        $until = $until ? $until : strtotime("now");
+
+        $mediaBasicMetrics = ['timestamp', 'caption', 'comments_count', 'like_count', 'media_url', 'media_type'];
+        $mediaBasicMetricsString = join(",", $mediaBasicMetrics);
+
+        $response = $this->client->get("/{$pageId}/media?fields={$mediaBasicMetricsString}&since={$since}&until={$until}&limit={$limit}");
+        $graphEdge = $response->getGraphEdge();
+
+        while ($graphEdge) {
+            foreach ($graphEdge as $post) {
+                $posts[] = $post->getField("id");
+            }
+            $graphEdge = $this->client->next($graphEdge);
+        }
+        return $posts;
+    }
+
+    /*
+     * Get Instagram medias' basic fields.
+     */
+    public function getBatchMediaBasicData($mediaIds, $fields)
+    {
+        $result = [];
+        $batchRequests = [];
+        $fieldsString = join(",", $fields);
+        foreach ($mediaIds as $mediaId) {
+            $request = $this->createRequest("GET", "/{$mediaId}", [
+                "fields" => $fieldsString,
+            ]);
+            $batchRequests[$mediaId] = $request;
+        }
+        $responses = $this->sendBatchRequest($batchRequests);
+        if (!empty($responses)) {
+            foreach ($responses as $key => $response) {
+                $result[$key] =  $response->getDecodedBody();
+            }
+        }
+
+        return $result;
+    }
+
+    /*
      * Create a single request
      */
     private function createRequest($method, $url, $params = [])
