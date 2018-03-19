@@ -195,7 +195,7 @@ class Facebook
     /*
      * Get Instagram medias sent within since and until date times.
      */
-    public function getUserMedias($pageId, $since, $until, $limit = 100)
+    public function getUserMedias($pageId, $since = null, $until = null, $limit = 100)
     {
         $posts = [];
 

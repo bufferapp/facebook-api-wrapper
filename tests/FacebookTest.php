@@ -754,7 +754,7 @@ class FacebookTest extends PHPUnit_Framework_TestCase
         $this->assertEquals($posts, []);
     }
 
-    public function testGetUserMdiasShouldUseRightSinceAndUntilArgs()
+    public function testGetUserMediasShouldUseRightSinceAndUntilArgs()
     {
         $graphEdge = new GraphEdge(
             new FacebookRequest(),
