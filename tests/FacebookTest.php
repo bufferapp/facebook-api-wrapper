@@ -12,6 +12,7 @@ class FacebookTest extends PHPUnit_Framework_TestCase
 {
     const FB_POST_ID = '11111_22222';
     const FB_PAGE_ID = '2222222';
+    const IG_USER_ID = '55556666';
 
     private $facebook = null;
 
@@ -695,5 +696,94 @@ class FacebookTest extends PHPUnit_Framework_TestCase
 
         $facebook->setFacebookLibrary($facebookMock);
         $this->assertCount(2, $facebook->getPagePosts(self::FB_PAGE_ID, $since, $until, 100));
+    }
+
+    public function testGetUserMediasShouldReturnCorrectData()
+    {
+        $graphEdge = new GraphEdge(new FacebookRequest(), [
+            new GraphNode([
+                'id' => '511222705738444_744511765742869'
+            ]),
+            new GraphNode([
+                'id' => '511222705738444_744029602457752'
+            ]),
+        ]);
+
+        $facebook = new Facebook();
+        $responseMock = m::mock('\Facebook\FacebookResponse')
+            ->shouldReceive('getGraphEdge')
+            ->once()
+            ->andReturn($graphEdge)
+            ->getMock();
+        $facebookMock = m::mock('\Facebook\Facebook');
+        $facebookMock->shouldReceive('get')->once()->andReturn($responseMock);
+        $facebookMock->shouldReceive('next')->once()->withArgs([$graphEdge])->andReturn(null);
+        $facebook->setFacebookLibrary($facebookMock);
+
+        $posts = $facebook->getUserMedias(
+            self::IG_USER_ID,
+            strtotime("yesterday"),
+            strtotime("now"),
+            10
+        );
+
+        $this->assertEquals(count($posts), 2);
+        $this->assertEquals($posts[0], "511222705738444_744511765742869");
+        $this->assertEquals($posts[1], "511222705738444_744029602457752");
+    }
+
+    public function testGetUserMediasShouldReturnEmptyOnEmptyBody()
+    {
+        $facebook = new Facebook();
+        $responseMock = m::mock('\Facebook\FacebookResponse')
+            ->shouldReceive('getGraphEdge')
+            ->once()
+            ->andReturn(null)
+            ->getMock();
+        $facebookMock = m::mock('\Facebook\Facebook');
+        $facebookMock->shouldReceive('get')->once()->andThrow($responseMock);
+        $facebook->setFacebookLibrary($facebookMock);
+
+        $posts = $facebook->getPagePosts(
+            self::IG_USER_ID,
+            strtotime("yesterday"),
+            strtotime("now"),
+            10
+        );
+
+        $this->assertEquals($posts, []);
+    }
+
+    public function testGetUserMdiasShouldUseRightSinceAndUntilArgs()
+    {
+        $graphEdge = new GraphEdge(
+            new FacebookRequest(),
+            [
+                new GraphNode([
+                    'id' => '511222705738444_744511765742869'
+                ]),
+            ]
+        );
+
+        $facebook = new Facebook();
+        $responseMock = m::mock('\Facebook\FacebookResponse')
+            ->shouldReceive('getGraphEdge')
+            ->once()
+            ->andReturn($graphEdge)
+            ->getMock();
+        $facebookMock = m::mock('\Facebook\Facebook');
+
+        $since  = "1493826552";
+        $until = "1496418552";
+        $params = [
+            "limit" => 100,
+            "until" => $until,
+            "since" => $since,
+        ];
+        $expectedGetParams = ["/55556666/media?fields=timestamp,caption,comments_count,like_count,media_url,media_type&since={$since}&until={$until}&limit=100"];
+        $facebookMock->shouldReceive('get')->withArgs($expectedGetParams)->once()->andReturn($responseMock);
+        $facebookMock->shouldReceive('next')->withArgs([$graphEdge])->once()->andReturn(null);
+        $facebook->setFacebookLibrary($facebookMock);
+        $facebook->getUserMedias(self::IG_USER_ID, $since, $until, 100);
     }
 }
