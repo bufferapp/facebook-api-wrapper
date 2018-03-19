@@ -68,6 +68,26 @@ class Facebook
     }
 
     /*
+     * Get Instagram Graph node metadata
+     */
+    public function getInstagramGraphNodeMetadata($nodeId, $fields)
+    {
+        $fieldsString = join(",", $fields);
+
+        $response = $this->sendRequest("GET", "/{$nodeId}", [
+            "fields" => $fieldsString,
+        ]);
+
+        if (empty($response) || $response->isError()) {
+            return [];
+        }
+
+        $data = $response->getDecodedBody();
+        return $data;
+    }
+
+
+    /*
      * Get page post's graph metrics data (only comments, likes and reactions)
      */
     public function getPagePostGraphMetricsData($pageId, $postId, $metrics)
