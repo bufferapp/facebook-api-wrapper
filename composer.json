@@ -3,7 +3,7 @@
 	"description": "A PHP SDK for the Facebook API",
 	"keywords": ["facebook", "facebook api", "facebook php"],
 	"type": "package",
-	"license": "Apache",
+	"license": "Apache-2.0",
 	"authors": [{
 		"name": "Tigran Hakobyan"
 	}],
