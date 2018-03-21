@@ -44,7 +44,7 @@ class Facebook
     /*
      * Get page insights data for the given page, metrics and range.
      */
-    public function getPageInsightsMetricsData($pageId, $insightsMetrics, $since, $until)
+    public function getPageInsightsMetricsData($pageId, $insightsMetrics, $since, $until, $period = null)
     {
         $params = [
             "metric" => $insightsMetrics,
@@ -54,6 +54,11 @@ class Facebook
             $params["since"] = $since;
             $params["until"] = $until;
         }
+
+        if (!is_null($period)) {
+            $params["period"] = $period;
+        }
+
         $response = $this->sendRequest("GET", "/{$pageId}/insights", $params);
 
         if (!empty($response)) {

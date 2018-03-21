@@ -182,6 +182,41 @@ class FacebookTest extends PHPUnit_Framework_TestCase
         $this->assertEquals($insightsData, []);
     }
 
+    public function testGetPageInsightsMetricsDataShouldAcceptAnOptionalPeriodParameter()
+    {
+        $facebook = new Facebook();
+        $responseMock = m::mock('\Facebook\FacebookResponse')
+            ->shouldReceive('getDecodedBody')
+            ->once()
+            ->andReturn([])
+            ->getMock();
+        $facebookMock = m::mock('\Facebook\Facebook');
+        $since  = "1493826552";
+        $until = "1496418552";
+        $period = 'day';
+        $params = [
+            "metric" => ['page_posts_impressions_unique'],
+            "until" => $until,
+            "since" => $since,
+            "period" => $period,
+        ];
+        $expectedGetParams = ["GET", "/2222222/insights", $params];
+
+        $facebookMock->shouldReceive('sendRequest')
+            ->withArgs($expectedGetParams)
+            ->once()
+            ->andReturn($responseMock);
+        $facebook->setFacebookLibrary($facebookMock);
+
+        $facebook->getPageInsightsMetricsData(
+            self::FB_PAGE_ID,
+            ['page_posts_impressions_unique'],
+            $since,
+            $until,
+            $period
+        );
+    }
+
     public function testGetPageInsightsMetricsDataShouldUseRightSinceAndUntil()
     {
         $decodedInsightsResponseData = [
