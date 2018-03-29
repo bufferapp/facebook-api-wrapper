@@ -952,4 +952,47 @@ class FacebookTest extends PHPUnit_Framework_TestCase
             'id' => self::FB_PAGE_ID
         ]);
     }
+
+    public function testBrakeIntervalInLegalBatches()
+    {
+        $facebook = new Facebook();
+
+        // 30 days
+        $until = strtotime('now');
+        $since = strtotime('- 30 days');
+
+        $intervals = $facebook->getIntervalsForPeriod($since, $until);
+        $this->assertInternalType('array', $intervals);
+        $this->assertEquals([
+            [
+            'since' => $since,
+            'until' => $until,
+            ],
+        ], $intervals);
+
+        // 93 days
+        $until = strtotime('today');
+        $since = strtotime('- 93 days');
+
+        $intervals = $facebook->getIntervalsForPeriod($since, $until);
+        $this->assertInternalType('array', $intervals);
+        $this->assertEquals([
+            [
+            'since' => $since,
+            'until' => strtotime("+30 days", $since),
+            ],
+            [
+            'since' => strtotime("+30 days", $since),
+            'until' => strtotime("+60 days", $since),
+            ],
+            [
+            'since' => strtotime("+60 days", $since),
+            'until' => strtotime("+90 days", $since),
+            ],
+            [
+            'since' => strtotime("+90 days", $since),
+            'until' => $until,
+            ],
+        ], $intervals);
+    }
 }

@@ -357,4 +357,37 @@ class Facebook
     {
         return $this->client->sendBatchRequest($requests);
     }
+
+    /*
+     * Break any inteval into batches of maximum 30 days
+     */
+    public function getIntervalsForPeriod($since, $until)
+    {
+        $maxDaysPerRequest = 30;
+        $numDays = abs($since - $until)/60/60/24;
+
+
+        if ($numDays <= $maxDaysPerRequest) {
+            return [['since' => $since, 'until' => $until]];
+        } elseif ($numDays > $maxDaysPerRequest) {
+            $numIntervals = ceil($numDays / $maxDaysPerRequest);
+            $intevals = [];
+            $intevalUntil = $since;
+            $intevalSince = $since;
+            while (count($intevals) < $numIntervals) {
+                $intevalUntil = strtotime("+{$maxDaysPerRequest} days", $intevalUntil);
+                if ($intevalUntil > $until) {
+                    $intevalUntil = $until;
+                }
+                $intevals[] = [
+                    'since' => $intevalSince,
+                    'until' => $intevalUntil,
+                ];
+                $intevalSince = $intevalUntil;
+            }
+
+            return $intevals;
+        }
+        return [];
+    }
 }
