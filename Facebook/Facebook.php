@@ -218,28 +218,37 @@ class Facebook
     }
 
     /*
-     * Get Instagram medias sent within since and until date times.
+     * Get all media objects for an Instagram Business Account sent within since and until
      */
-    public function getUserMedias($pageId, $since = null, $until = null, $limit = 100)
+    public function getUserMedias($userId, $since, $until)
     {
         $posts = [];
 
         $since = $since ? $since : strtotime("yesterday");
         $until = $until ? $until : strtotime("now");
 
-        $mediaBasicMetrics = ['timestamp', 'caption', 'comments_count', 'like_count', 'media_url', 'media_type'];
+        $mediaBasicMetrics = ['timestamp'];
         $mediaBasicMetricsString = join(",", $mediaBasicMetrics);
 
-        $response = $this->client->get("/{$pageId}/media?fields={$mediaBasicMetricsString}&since={$since}&until={$until}&limit={$limit}");
+        $response = $this->client->get("/{$userId}/media?fields={$mediaBasicMetricsString}");
         $graphEdge = $response->getGraphEdge();
 
         while ($graphEdge) {
             foreach ($graphEdge as $post) {
-                $posts[] = $post->getField("id");
+                $timestamp = strtotime($post->getField("timestamp"));
+                if ($this->isTimestampWitinDateRange($timestamp, $since, $until)) {
+                    $posts[] = $post->getField("id");
+                }
             }
             $graphEdge = $this->client->next($graphEdge);
         }
+
         return $posts;
+    }
+
+    private function isTimestampWitinDateRange($postTimestamp, $since, $until)
+    {
+        return $postTimestamp >= $since && $postTimestamp <= $until;
     }
 
     /*
