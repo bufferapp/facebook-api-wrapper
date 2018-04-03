@@ -118,8 +118,8 @@ class FacebookTest extends PHPUnit_Framework_TestCase
                 'page_views_total',
                 'page_fans',
             ],
-            strtotime("yesterday"),
-            strtotime("now")
+            null,
+            null
         );
         $this->assertEquals($insightsData["page_views_total"]["2017-04-27T07:00:00+0000"], 123);
         $this->assertEquals($insightsData["page_views_total"]["2017-04-28T07:00:00+0000"], 222);
@@ -152,8 +152,8 @@ class FacebookTest extends PHPUnit_Framework_TestCase
                 'page_posts_impressions_unique',
                 'page_posts_impressions',
             ],
-            strtotime("yesterday"),
-            strtotime("now")
+            null,
+            null
         );
         $this->assertEquals($insightsData, []);
     }
@@ -176,8 +176,8 @@ class FacebookTest extends PHPUnit_Framework_TestCase
                 'page_posts_impressions_unique',
                 'page_posts_impressions',
             ],
-            strtotime("yesterday"),
-            strtotime("now")
+            null,
+            null
         );
         $this->assertEquals($insightsData, []);
     }
@@ -191,13 +191,11 @@ class FacebookTest extends PHPUnit_Framework_TestCase
             ->andReturn([])
             ->getMock();
         $facebookMock = m::mock('\Facebook\Facebook');
-        $since  = "1493826552";
-        $until = "1496418552";
+        $since  = null;
+        $until = null;
         $period = 'day';
         $params = [
             "metric" => ['page_posts_impressions_unique'],
-            "until" => $until,
-            "since" => $since,
             "period" => $period,
         ];
         $expectedGetParams = ["GET", "/2222222/insights", $params];
@@ -256,8 +254,20 @@ class FacebookTest extends PHPUnit_Framework_TestCase
             "since" => $since,
         ];
         $expectedGetParams = ["GET", "/2222222/insights", $params];
+        $getIteratorMock = new ArrayIterator([$responseMock]);
 
-        $facebookMock->shouldReceive('sendRequest')->withArgs($expectedGetParams)->once()->andReturn($responseMock);
+        $responseBatchMock = m::mock('\Facebook\FacebookBatchResponse')
+            ->shouldReceive('getIterator')
+            ->once()
+            ->andReturn($getIteratorMock)
+            ->getMock();
+
+        $requestMock = m::mock('\Facebook\FacebookRequest');
+
+        $facebookMock->shouldReceive('request')->once()->andReturn($requestMock);
+
+        $facebookMock->shouldReceive('sendBatchRequest')->once()->andReturn($responseBatchMock);
+
         $facebook->setFacebookLibrary($facebookMock);
 
         $facebook->getPageInsightsMetricsData(
@@ -266,6 +276,98 @@ class FacebookTest extends PHPUnit_Framework_TestCase
             $since,
             $until
         );
+    }
+
+    public function testGetPageInsightsMetricsDataShouldBatchLongPeriodRequests()
+    {
+        $decodedInsightsResponseData1 = [
+            'data' => [
+                0 => [
+                    'name' => 'page_fans',
+                    'period' => 'day',
+                    'values' => [
+                        0 => [
+                            'value' => 123,
+                            'end_time' => '2017-04-27T07:00:00+0000',
+                        ],
+                        1 => [
+                            'value' => 222,
+                            'end_time' => '2017-04-28T07:00:00+0000',
+                        ],
+                        2 => [
+                            'value' => 111,
+                            'end_time' => '2017-04-29T07:00:00+0000',
+                        ],
+                    ],
+                ],
+            ]
+        ];
+
+        $decodedInsightsResponseData2 = [
+            'data' => [
+                0 => [
+                    'name' => 'page_fans',
+                    'period' => 'day',
+                    'values' => [
+                        0 => [
+                            'value' => 123,
+                            'end_time' => '2017-05-27T07:00:00+0000',
+                        ],
+                        1 => [
+                            'value' => 222,
+                            'end_time' => '2017-05-28T07:00:00+0000',
+                        ],
+                        2 => [
+                            'value' => 111,
+                            'end_time' => '2017-05-29T07:00:00+0000',
+                        ],
+                    ],
+                ],
+            ]
+        ];
+        $until = strtotime('today');
+        $since = strtotime('- 42 days');
+
+        $facebook = new Facebook();
+        $responseMock1 = m::mock('\Facebook\FacebookResponse')
+            ->shouldReceive('getDecodedBody')
+            ->once()
+            ->andReturn($decodedInsightsResponseData1)
+            ->getMock();
+        $responseMock2 = m::mock('\Facebook\FacebookResponse')
+            ->shouldReceive('getDecodedBody')
+            ->once()
+            ->andReturn($decodedInsightsResponseData2)
+            ->getMock();
+        $facebookMock = m::mock('\Facebook\Facebook');
+        $getIteratorMock = new ArrayIterator([$responseMock1, $responseMock2]);
+        $responseBatchMock = m::mock('\Facebook\FacebookBatchResponse')
+            ->shouldReceive('getIterator')
+            ->once()
+            ->andReturn($getIteratorMock)
+            ->getMock();
+
+        $requestMock = m::mock('\Facebook\FacebookRequest');
+
+        $facebookMock->shouldReceive('request')->twice()->andReturn($requestMock);
+
+        $facebookMock->shouldReceive('sendBatchRequest')->once()->andReturn($responseBatchMock);
+
+        $facebook->setFacebookLibrary($facebookMock);
+
+        $insightsData = $facebook->getPageInsightsMetricsData(
+            self::FB_PAGE_ID,
+            ['page_posts_impressions_unique'],
+            $since,
+            $until
+        );
+
+        $this->assertEquals($insightsData["page_fans"]["2017-04-27T07:00:00+0000"], 123);
+        $this->assertEquals($insightsData["page_fans"]["2017-04-28T07:00:00+0000"], 222);
+        $this->assertEquals($insightsData["page_fans"]["2017-04-29T07:00:00+0000"], 111);
+        $this->assertEquals($insightsData["page_fans"]["2017-05-27T07:00:00+0000"], 123);
+        $this->assertEquals($insightsData["page_fans"]["2017-05-28T07:00:00+0000"], 222);
+        $this->assertEquals($insightsData["page_fans"]["2017-05-29T07:00:00+0000"], 111);
     }
 
     public function testGetPagePostGraphMetricsData()
@@ -960,5 +1062,48 @@ class FacebookTest extends PHPUnit_Framework_TestCase
             'follows_count' => 12,
             'id' => self::FB_PAGE_ID
         ]);
+    }
+
+    public function testBrakeIntervalInLegalBatches()
+    {
+        $facebook = new Facebook();
+
+        // 30 days
+        $until = strtotime('now');
+        $since = strtotime('- 30 days');
+
+        $intervals = $facebook->getIntervalsForPeriod($since, $until);
+        $this->assertInternalType('array', $intervals);
+        $this->assertEquals([
+            [
+            'since' => $since,
+            'until' => $until,
+            ],
+        ], $intervals);
+
+        // 93 days
+        $until = strtotime('today');
+        $since = strtotime('- 93 days');
+
+        $intervals = $facebook->getIntervalsForPeriod($since, $until);
+        $this->assertInternalType('array', $intervals);
+        $this->assertEquals([
+            [
+            'since' => $since,
+            'until' => strtotime("+30 days", $since),
+            ],
+            [
+            'since' => strtotime("+30 days", $since),
+            'until' => strtotime("+60 days", $since),
+            ],
+            [
+            'since' => strtotime("+60 days", $since),
+            'until' => strtotime("+90 days", $since),
+            ],
+            [
+            'since' => strtotime("+90 days", $since),
+            'until' => $until,
+            ],
+        ], $intervals);
     }
 }

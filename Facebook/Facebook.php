@@ -48,28 +48,46 @@ class Facebook
     {
         $params = [
             "metric" => $insightsMetrics,
-            "until" => strtotime("now"),
         ];
-        if (!is_null($since) && !is_null($until)) {
-            $params["since"] = $since;
-            $params["until"] = $until;
-        }
 
         if (!is_null($period)) {
             $params["period"] = $period;
         }
 
-        $response = $this->sendRequest("GET", "/{$pageId}/insights", $params);
+        $data = [];
+        $responses = [];
 
-        if (!empty($response)) {
-            $decodedBody = $response->getDecodedBody();
-            if (!empty($decodedBody) && is_array($decodedBody)) {
-                // make the response human readable and return it
-                return $this->extractPageInsightsMetricsFromResponse($decodedBody);
+        if (is_null($since) && is_null($until)) {
+            $responses[] = $this->sendRequest("GET", "/{$pageId}/insights", $params);
+        } else {
+            $intervals = $this->getIntervalsForPeriod($since, $until);
+
+            foreach ($intervals as $interval) {
+                $params["since"] = $interval['since'];
+                $params["until"] = $interval['until'];
+                $requests[] = $this->createRequest("GET", "/{$pageId}/insights", $params);
+            }
+
+            $responses = $this->sendBatchRequest($requests);
+        }
+
+        if (!empty($responses)) {
+            foreach ($responses as $response) {
+                $decodedBody = $response->getDecodedBody();
+                if (!empty($decodedBody) && is_array($decodedBody)) {
+                    $responseData = $this->extractPageInsightsMetricsFromResponse($decodedBody);
+                    foreach ($responseData as $metricKey => $values) {
+                        $existingValues = isset($data[$metricKey]) ?
+                            $data[$metricKey] :
+                            [];
+                        $data[$metricKey] = array_merge($existingValues, $values);
+                    }
+                }
             }
         }
 
-        return [];
+
+        return $data;
     }
 
     /*
@@ -365,5 +383,38 @@ class Facebook
     private function sendBatchRequest($requests)
     {
         return $this->client->sendBatchRequest($requests);
+    }
+
+    /*
+     * Break an interval into chunks of maximum 30 days
+     */
+    public function getIntervalsForPeriod($since, $until)
+    {
+        $maxDaysPerRequest = 30;
+        $numDays = abs($since - $until)/60/60/24;
+
+
+        if ($numDays <= $maxDaysPerRequest) {
+            return [['since' => $since, 'until' => $until]];
+        } elseif ($numDays > $maxDaysPerRequest) {
+            $numIntervals = ceil($numDays / $maxDaysPerRequest);
+            $intevals = [];
+            $intevalUntil = $since;
+            $intevalSince = $since;
+            while (count($intevals) < $numIntervals) {
+                $intevalUntil = strtotime("+{$maxDaysPerRequest} days", $intevalUntil);
+                if ($intevalUntil > $until) {
+                    $intevalUntil = $until;
+                }
+                $intevals[] = [
+                    'since' => $intevalSince,
+                    'until' => $intevalUntil,
+                ];
+                $intevalSince = $intevalUntil;
+            }
+
+            return $intevals;
+        }
+        return [];
     }
 }
