@@ -737,10 +737,20 @@ class FacebookTest extends PHPUnit_Framework_TestCase
     {
         $graphEdge = new GraphEdge(new FacebookRequest(), [
             new GraphNode([
-                'id' => '511222705738444_744511765742869'
+                'id' => '511222705738444_744511765742869',
+                'timestamp' => '2018-04-03T03:38:30+0000',
             ]),
             new GraphNode([
-                'id' => '511222705738444_744029602457752'
+                'id' => '511222705738444_744029602457752',
+                'timestamp' => '2018-04-02T06:38:30+0000',
+            ]),
+            new GraphNode([
+                'id' => '511222705738444_744029602457752',
+                'timestamp' => '2018-03-03T03:38:30+0000',
+            ]),
+            new GraphNode([
+                'id' => '511222705738444_744029602457752',
+                'timestamp' => '2018-01-03T03:38:30+0000',
             ]),
         ]);
 
@@ -757,12 +767,11 @@ class FacebookTest extends PHPUnit_Framework_TestCase
 
         $posts = $facebook->getUserMedias(
             self::IG_USER_ID,
-            strtotime("yesterday"),
-            strtotime("now"),
-            10
+            strtotime("2018-04-02T00:00:30+0000"),
+            strtotime("now")
         );
-
-        $this->assertEquals(count($posts), 2);
+        // only two posts fit within the given date range
+        $this->assertEquals(count($posts),2);
         $this->assertEquals($posts[0], "511222705738444_744511765742869");
         $this->assertEquals($posts[1], "511222705738444_744029602457752");
     }
@@ -795,7 +804,8 @@ class FacebookTest extends PHPUnit_Framework_TestCase
             new FacebookRequest(),
             [
                 new GraphNode([
-                    'id' => '511222705738444_744511765742869'
+                    'id' => '511222705738444_744511765742869',
+                    'timestamp' => '2018-04-02T00:00:30+0000'
                 ]),
             ]
         );
@@ -811,15 +821,14 @@ class FacebookTest extends PHPUnit_Framework_TestCase
         $since  = "1493826552";
         $until = "1496418552";
         $params = [
-            "limit" => 100,
             "until" => $until,
             "since" => $since,
         ];
-        $expectedGetParams = ["/55556666/media?fields=timestamp,caption,comments_count,like_count,media_url,media_type&since={$since}&until={$until}&limit=100"];
+        $expectedGetParams = ["/55556666/media?fields=timestamp"];
         $facebookMock->shouldReceive('get')->withArgs($expectedGetParams)->once()->andReturn($responseMock);
         $facebookMock->shouldReceive('next')->withArgs([$graphEdge])->once()->andReturn(null);
         $facebook->setFacebookLibrary($facebookMock);
-        $facebook->getUserMedias(self::IG_USER_ID, $since, $until, 100);
+        $facebook->getUserMedias(self::IG_USER_ID, $since, $until);
     }
 
     public function testGetBatchMediaBasicData()
