@@ -48,6 +48,7 @@ class Facebook
     {
         $params = [
             "metric" => $insightsMetrics,
+            "until" => strtotime("now"),
         ];
 
         if (!is_null($period)) {
