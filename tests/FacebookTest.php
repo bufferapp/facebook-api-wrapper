@@ -196,6 +196,7 @@ class FacebookTest extends PHPUnit_Framework_TestCase
         $period = 'day';
         $params = [
             "metric" => ['page_posts_impressions_unique'],
+            "until" => strtotime("now"),
             "period" => $period,
         ];
         $expectedGetParams = ["GET", "/2222222/insights", $params];
@@ -1106,4 +1107,54 @@ class FacebookTest extends PHPUnit_Framework_TestCase
             ],
         ], $intervals);
     }
+
+    public function testGetPageAccessTokenShouldReturnNullIfError()
+    {
+        $facebook = new Facebook();
+        $responseMock = m::mock('\Facebook\FacebookResponse')
+            ->shouldReceive('isError')
+            ->once()
+            ->andReturn(true)
+            ->getMock();
+        $facebookMock = m::mock('\Facebook\Facebook');
+        $facebookMock->shouldReceive('sendRequest')->once()->andReturn($responseMock);
+        $facebook->setFacebookLibrary($facebookMock);
+
+        $accessToken = $facebook->getPageAccessToken(self::FB_PAGE_ID);
+        $this->assertNull($accessToken);
+    }
+
+
+    public function testGetPageAccessTokenShouldReturnNullIfNoResponse()
+    {
+        $facebook = new Facebook();
+        $facebookMock = m::mock('\Facebook\Facebook');
+        $facebookMock->shouldReceive('sendRequest')->once()->andReturn(null);
+        $facebook->setFacebookLibrary($facebookMock);
+
+        $accessToken = $facebook->getPageAccessToken(self::FB_PAGE_ID);
+        $this->assertNull($accessToken);
+    }
+
+    public function testGetPageAccessTokenShouldReturnThePageAccessToken()
+    {
+        $facebook = new Facebook();
+        $facebookMock = m::mock('\Facebook\Facebook');
+        $responseMock = m::mock('\Facebook\FacebookResponse')
+            ->shouldReceive('isError')
+            ->once()
+            ->andReturn(false)
+            ->shouldReceive('getDecodedBody')
+            ->once()
+            ->andReturn([
+                'access_token' => 'test-access-token-1',
+            ])
+            ->getMock();
+        $facebookMock->shouldReceive('sendRequest')->once()->andReturn($responseMock);
+        $facebook->setFacebookLibrary($facebookMock);
+
+        $accessToken = $facebook->getPageAccessToken(self::FB_PAGE_ID);
+        $this->assertEquals($accessToken, 'test-access-token-1');
+    }
+
 }

@@ -42,6 +42,24 @@ class Facebook
     }
 
     /*
+     * Get page access token.
+     */
+    public function getPageAccessToken($pageId)
+    {
+
+        $response = $this->sendRequest("GET", "/{$pageId}", [
+            "fields" => "access_token",
+        ]);
+
+        if (empty($response) || $response->isError()) {
+            return null;
+        }
+        $data = $response->getDecodedBody();
+
+        return $data["access_token"] ?? null;
+    }
+
+    /*
      * Get page insights data for the given page, metrics and range.
      */
     public function getPageInsightsMetricsData($pageId, $insightsMetrics, $since, $until, $period = null)
