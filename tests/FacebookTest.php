@@ -704,9 +704,9 @@ class FacebookTest extends PHPUnit_Framework_TestCase
     {
         $facebook = new Facebook();
         $responseMock = m::mock('\Facebook\FacebookResponse')
-            ->shouldReceive('getGraphEdge')
+            ->shouldReceive('getBody')
             ->once()
-            ->andReturn(null)
+            ->andReturn('')
             ->getMock();
         $facebookMock = m::mock('\Facebook\Facebook');
         $facebookMock->shouldReceive('get')->once()->andThrow($responseMock);
@@ -724,30 +724,31 @@ class FacebookTest extends PHPUnit_Framework_TestCase
 
     public function testGetPagePostsShouldReturnCorrectData()
     {
-        $graphEdge = new GraphEdge(new FacebookRequest(), [
-            new GraphNode([
-                'created_time' => DateTime::createFromFormat(DATE_ISO8601, '2017-04-20T17:50:27+0000'),
-                'id' => '511222705738444_744511765742869'
-            ]),
-            new GraphNode([
-                'created_time' => DateTime::createFromFormat(DATE_ISO8601, '2017-04-19T18:23:52+0000'),
-                'id' => '511222705738444_744029602457752'
-            ]),
-            new GraphNode([
-                'created_time' => DateTime::createFromFormat(DATE_ISO8601, '2017-04-19T18:20:58+0000'),
-                'id' => '511222705738444_744027942457918'
-            ])
-        ]);
+        $response = [
+            'data' => [
+                [
+                    'created_time' => strtotime('2017-04-20T17:50:27+0000'),
+                    'id' => '511222705738444_744511765742869'
+                ],
+                [
+                    'created_time' => strtotime('2017-04-19T18:23:52+0000'),
+                    'id' => '511222705738444_744029602457752'
+                ],
+                [
+                    'created_time' => strtotime('2017-04-19T18:20:58+0000'),
+                    'id' => '511222705738444_744027942457918'
+                ]
+            ]
+        ];
 
         $facebook = new Facebook();
         $responseMock = m::mock('\Facebook\FacebookResponse')
-            ->shouldReceive('getGraphEdge')
+            ->shouldReceive('getBody')
             ->once()
-            ->andReturn($graphEdge)
+            ->andReturn(json_encode($response))
             ->getMock();
         $facebookMock = m::mock('\Facebook\Facebook');
         $facebookMock->shouldReceive('get')->once()->andReturn($responseMock);
-        $facebookMock->shouldReceive('next')->once()->withArgs([$graphEdge])->andReturn(null);
         $facebook->setFacebookLibrary($facebookMock);
 
         $posts = $facebook->getPagePosts(
@@ -758,28 +759,25 @@ class FacebookTest extends PHPUnit_Framework_TestCase
         );
 
         $this->assertEquals(count($posts), 3);
-        $this->assertEquals($posts["511222705738444_744511765742869"], "2017-04-20T17:50:27+0000");
-        $this->assertEquals($posts["511222705738444_744029602457752"], "2017-04-19T18:23:52+0000");
-        $this->assertEquals($posts["511222705738444_744027942457918"], "2017-04-19T18:20:58+0000");
+        $this->assertEquals($posts, $response['data']);
     }
 
     public function testGetPagePostsShouldUseRightSinceAndUntilArgs()
     {
-        $graphEdge = new GraphEdge(
-            new FacebookRequest(),
-            [
-                new GraphNode([
-                    'created_time' => DateTime::createFromFormat(DATE_ISO8601, '2017-04-20T17:50:27+0000'),
+        $response = [
+            'data' => [
+                [
+                    'created_time' => strtotime('2017-04-20T17:50:27+0000'),
                     'id' => '511222705738444_744511765742869'
-                ]),
+                ],
             ]
-        );
+        ];
 
         $facebook = new Facebook();
         $responseMock = m::mock('\Facebook\FacebookResponse')
-            ->shouldReceive('getGraphEdge')
+            ->shouldReceive('getBody')
             ->once()
-            ->andReturn($graphEdge)
+            ->andReturn(json_encode($response))
             ->getMock();
         $facebookMock = m::mock('\Facebook\Facebook');
 
@@ -790,50 +788,10 @@ class FacebookTest extends PHPUnit_Framework_TestCase
             "until" => $until,
             "since" => $since,
         ];
-        $expectedGetParams = ["/2222222/posts?since={$since}&until={$until}&limit=100"];
+        $expectedGetParams = ["/2222222/posts?since={$since}&until={$until}&limit=100&fields=id,created_time,updated_time,source,attachments,link,message"];
         $facebookMock->shouldReceive('get')->withArgs($expectedGetParams)->once()->andReturn($responseMock);
-        $facebookMock->shouldReceive('next')->withArgs([$graphEdge])->once()->andReturn(null);
         $facebook->setFacebookLibrary($facebookMock);
         $facebook->getPagePosts(self::FB_PAGE_ID, $since, $until, 100);
-    }
-
-    public function testShouldKeepMakingCallsWhenThereArePaginatedResults()
-    {
-        $graphEdge = new GraphEdge(
-            new FacebookRequest(),
-            [
-                new GraphNode([
-                    'created_time' => DateTime::createFromFormat(DATE_ISO8601, '2017-04-20T16:21:23+0000'),
-                    'id' => '511222705738444_744511765742869'
-                ])
-            ]
-        );
-        $notPagedResponse = new GraphEdge(
-            new FacebookRequest(),
-            [
-                new GraphNode([
-                    'created_time' => DateTime::createFromFormat(DATE_ISO8601, '2017-04-22T18:21:23+0000'),
-                    'id' => '511222705738444_744511022112069'
-                ])
-            ]
-        );
-        $facebook = new Facebook();
-        $responsePagedMock = m::mock('\Facebook\FacebookResponse')
-            ->shouldReceive('getGraphEdge')
-            ->once()
-            ->andReturn($graphEdge)
-            ->getMock();
-
-        $since = "1493826552";
-        $until = "1496418552";
-
-        $facebookMock = m::mock('\Facebook\Facebook');
-        $facebookMock->shouldReceive('get')->with("/2222222/posts?since={$since}&until={$until}&limit=100")->once()->andReturn($responsePagedMock);
-        $facebookMock->shouldReceive('next')->withArgs([$graphEdge])->once()->andReturn($notPagedResponse);
-        $facebookMock->shouldReceive('next')->withArgs([$notPagedResponse])->once()->andReturn(null);
-
-        $facebook->setFacebookLibrary($facebookMock);
-        $this->assertCount(2, $facebook->getPagePosts(self::FB_PAGE_ID, $since, $until, 100));
     }
 
     public function testGetUserMediasShouldReturnCorrectData()
@@ -883,9 +841,9 @@ class FacebookTest extends PHPUnit_Framework_TestCase
     {
         $facebook = new Facebook();
         $responseMock = m::mock('\Facebook\FacebookResponse')
-            ->shouldReceive('getGraphEdge')
+            ->shouldReceive('getBody')
             ->once()
-            ->andReturn(null)
+            ->andReturn(json_encode([]))
             ->getMock();
         $facebookMock = m::mock('\Facebook\Facebook');
         $facebookMock->shouldReceive('get')->once()->andThrow($responseMock);
