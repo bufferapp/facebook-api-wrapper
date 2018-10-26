@@ -233,25 +233,18 @@ class Facebook
      */
     public function getPagePosts($pageId, $since, $until, $limit = 100)
     {
-        $posts = [];
-
         $since = $since ? $since : strtotime("yesterday");
         $until = $until ? $until : strtotime("now");
+        $fields = 'id,created_time,updated_time,source,attachments,link,message';
 
+        $response = $this->client->get("/{$pageId}/posts?since={$since}&until={$until}&limit={$limit}&fields={$fields}");
+        $rawResponse = json_decode($response->getBody(), true);
 
-        $posts = [];
-        $response = $this->client->get("/{$pageId}/posts?since={$since}&until={$until}&limit={$limit}");
-        $graphEdge = $response->getGraphEdge();
-
-        while ($graphEdge) {
-            foreach ($graphEdge as $post) {
-                $posts[$post->getField("id")] = $post->getField("created_time")->format(DATE_ISO8601);
-            }
-
-            $graphEdge = $this->client->next($graphEdge);
+        if (!isset($rawResponse['data'])) {
+            return [];
         }
 
-        return $posts;
+        return $rawResponse['data'];
     }
 
     /*
