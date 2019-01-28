@@ -429,4 +429,9 @@ class Facebook
         }
         return [];
     }
+
+    public function subscribeToWebhook($pageId)
+    {
+        return $this->sendRequest("POST", "/${pageId}/subscribed_apps");
+    }
 }
