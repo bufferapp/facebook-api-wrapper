@@ -20,6 +20,5 @@
 			"Buffer\\Facebook\\": "Facebook/"
 		}
 	},
-	"version": "1.5.0",
 	"minimum-stability": "dev"
 }
