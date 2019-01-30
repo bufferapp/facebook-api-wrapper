@@ -1131,4 +1131,28 @@ class FacebookTest extends PHPUnit_Framework_TestCase
         $this->assertEquals($accessToken, 'test-access-token-1');
     }
 
+    public function testGetMeReturnsPageInformation()
+    {
+        $me = [
+            'id' => '2345',
+            'name' => 'Test Page',
+        ];
+        $facebook = new Facebook();
+        $responseMock = m::mock('\Facebook\FacebookResponse')
+            ->shouldReceive('getDecodedBody')
+            ->once()
+            ->andReturn($me)
+            ->getMock();
+        $facebookMock = m::mock('\Facebook\Facebook');
+        $facebookMock
+            ->shouldReceive('sendRequest')
+            ->once()
+            ->with('GET', '/me', [])
+            ->andReturn($responseMock);
+        $facebook->setFacebookLibrary($facebookMock);
+
+        $response = $facebook->getMe();
+
+        $this->assertEquals('2345', $response['id']);
+    }
 }

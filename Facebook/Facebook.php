@@ -434,4 +434,9 @@ class Facebook
     {
         return $this->sendRequest("POST", "/${pageId}/subscribed_apps");
     }
+
+    public function getMe()
+    {
+        return $this->sendRequest("GET", "/me")->getDecodedBody();
+    }
 }
