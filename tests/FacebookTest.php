@@ -1155,4 +1155,69 @@ class FacebookTest extends PHPUnit_Framework_TestCase
 
         $this->assertEquals('2345', $response['id']);
     }
+
+    public function testGetInstagramUserStories()
+    {
+        $userId = "123456789";
+        $data = [
+            'timestamp' => '123456',
+            'caption' => 'Test Caption',
+        ];
+
+        $fieldsArray = ['caption', 'timestamp'];
+        $fields = join(",", $fieldsArray);
+
+        $facebook = new Facebook();
+
+        $responseMock = m::mock('\Facebook\FacebookResponse')
+        ->shouldReceive('isError')
+        ->once()
+        ->andReturn(false)
+        ->shouldReceive('getDecodedBody')
+        ->once()
+        ->andReturn(['data' => 'valid_data'])
+        ->getMock();
+        $facebookMock = m::mock('\Facebook\Facebook');
+        $facebookMock
+            ->shouldReceive('sendRequest')
+            ->once()
+            ->with('GET', "/${userId}/stories", ["fields" => $fields])
+            ->andReturn($responseMock);
+        $facebook->setFacebookLibrary($facebookMock);
+
+        $response = $facebook->getInstagramUserStories($userId, $fieldsArray);
+
+        $this->assertEquals($response, 'valid_data');
+    }
+
+    public function testGetInstagramUserStoriesReturnsNullIfError()
+    {
+        $userId = "123456789";
+        $data = [
+            'timestamp' => '123456',
+            'caption' => 'Test Caption',
+        ];
+
+        $fieldsArray = ['caption', 'timestamp'];
+        $fields = join(",", $fieldsArray);
+
+        $facebook = new Facebook();
+
+        $responseMock = m::mock('\Facebook\FacebookResponse')
+        ->shouldReceive('isError')
+        ->once()
+        ->andReturn(true)
+        ->getMock();
+        $facebookMock = m::mock('\Facebook\Facebook');
+        $facebookMock
+            ->shouldReceive('sendRequest')
+            ->once()
+            ->with('GET', "/${userId}/stories", ["fields" => $fields])
+            ->andReturn($responseMock);
+        $facebook->setFacebookLibrary($facebookMock);
+
+        $response = $facebook->getInstagramUserStories($userId, $fieldsArray);
+
+        $this->assertEquals($response, null);
+    }
 }
