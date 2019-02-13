@@ -305,6 +305,23 @@ class Facebook
         return $result;
     }
 
+    public function getInstagramUserStories($userId, $fields)
+    {
+        $fieldsString = join(",", $fields);
+
+        $response = $this->sendRequest("GET", "/{$userId}/stories", [
+            "fields" => $fieldsString,
+        ]);
+
+
+        if ($response->isError()) {
+            return null;
+        }
+        $body = $response->getDecodedBody();
+        
+        return $body["data"];
+    }
+
     /*
      * Create a single request
      */
