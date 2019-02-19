@@ -449,7 +449,7 @@ class Facebook
 
     public function subscribeToWebhook($pageId)
     {
-        return $this->sendRequest("POST", "/${pageId}/subscribed_apps");
+        return $this->sendRequest("POST", "/${pageId}/subscribed_apps")->getDecodedBody();
     }
 
     public function getMe()

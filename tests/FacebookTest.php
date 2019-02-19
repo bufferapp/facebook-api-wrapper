@@ -978,15 +978,22 @@ class FacebookTest extends PHPUnit_Framework_TestCase
         $facebook = new Facebook();
         $pageId = self::FB_PAGE_ID;
         $facebookMock = m::mock('\Facebook\Facebook');
+
+        $responseMock = m::mock('\Facebook\FacebookResponse')
+        ->shouldReceive('getDecodedBody')
+        ->once()
+        ->andReturn(['success' => true])
+        ->getMock();
+
         $facebookMock
             ->shouldReceive('sendRequest')
             ->once()
             ->with('POST', "/${pageId}/subscribed_apps", [])
-            ->andReturn(true);
+            ->andReturn($responseMock);
         $facebook->setFacebookLibrary($facebookMock);
 
         $response = $facebook->subscribeToWebhook($pageId);
-        $this->assertTrue($response);
+        $this->assertEquals($response, ['success' => true]);
     }
 
     public function testGetInstagramGraphNodeMetadataShouldReturnEmptyIfNoResponse()
