@@ -131,7 +131,6 @@ class FacebookTest extends PHPUnit_Framework_TestCase
 
         // week period metrics should not be in the response
         $this->assertArrayNotHasKey("page_fan_adds", $insightsData);
-
     }
 
     public function testGetPageInsightsMetricsDataShouldReturnEmpty()
@@ -503,8 +502,7 @@ class FacebookTest extends PHPUnit_Framework_TestCase
             ->shouldReceive('getDecodedBody')
             ->once()
             ->andReturn($decodedGraphResponseData1)
-            ->getMock()
-            ;
+            ->getMock();
         $responseMock2 = m::mock('\Facebook\FacebookResponse')
             ->shouldReceive('getDecodedBody')
             ->once()
@@ -593,8 +591,7 @@ class FacebookTest extends PHPUnit_Framework_TestCase
             ->shouldReceive('getDecodedBody')
             ->once()
             ->andReturn($decodedResponseData1)
-            ->getMock()
-            ;
+            ->getMock();
         $responseMock2 = m::mock('\Facebook\FacebookResponse')
             ->shouldReceive('getDecodedBody')
             ->once()
@@ -832,7 +829,7 @@ class FacebookTest extends PHPUnit_Framework_TestCase
             strtotime("now")
         );
         // only two posts fit within the given date range
-        $this->assertEquals(count($posts),2);
+        $this->assertEquals(count($posts), 2);
         $this->assertEquals($posts[0], "511222705738444_744511765742869");
         $this->assertEquals($posts[1], "511222705738444_744029602457752");
     }
@@ -910,8 +907,7 @@ class FacebookTest extends PHPUnit_Framework_TestCase
             ->shouldReceive('getDecodedBody')
             ->once()
             ->andReturn($decodedGraphResponseData1)
-            ->getMock()
-            ;
+            ->getMock();
         $responseMock2 = m::mock('\Facebook\FacebookResponse')
             ->shouldReceive('getDecodedBody')
             ->once()
@@ -980,10 +976,10 @@ class FacebookTest extends PHPUnit_Framework_TestCase
         $facebookMock = m::mock('\Facebook\Facebook');
 
         $responseMock = m::mock('\Facebook\FacebookResponse')
-        ->shouldReceive('getDecodedBody')
-        ->once()
-        ->andReturn(['success' => true])
-        ->getMock();
+            ->shouldReceive('getDecodedBody')
+            ->once()
+            ->andReturn(['success' => true])
+            ->getMock();
 
         $facebookMock
             ->shouldReceive('sendRequest')
@@ -1058,8 +1054,8 @@ class FacebookTest extends PHPUnit_Framework_TestCase
         $this->assertInternalType('array', $intervals);
         $this->assertEquals([
             [
-            'since' => $since,
-            'until' => $until,
+                'since' => $since,
+                'until' => $until,
             ],
         ], $intervals);
 
@@ -1071,20 +1067,20 @@ class FacebookTest extends PHPUnit_Framework_TestCase
         $this->assertInternalType('array', $intervals);
         $this->assertEquals([
             [
-            'since' => $since,
-            'until' => strtotime("+30 days", $since),
+                'since' => $since,
+                'until' => strtotime("+30 days", $since),
             ],
             [
-            'since' => strtotime("+30 days", $since),
-            'until' => strtotime("+60 days", $since),
+                'since' => strtotime("+30 days", $since),
+                'until' => strtotime("+60 days", $since),
             ],
             [
-            'since' => strtotime("+60 days", $since),
-            'until' => strtotime("+90 days", $since),
+                'since' => strtotime("+60 days", $since),
+                'until' => strtotime("+90 days", $since),
             ],
             [
-            'since' => strtotime("+90 days", $since),
-            'until' => $until,
+                'since' => strtotime("+90 days", $since),
+                'until' => $until,
             ],
         ], $intervals);
     }
@@ -1177,13 +1173,13 @@ class FacebookTest extends PHPUnit_Framework_TestCase
         $facebook = new Facebook();
 
         $responseMock = m::mock('\Facebook\FacebookResponse')
-        ->shouldReceive('isError')
-        ->once()
-        ->andReturn(false)
-        ->shouldReceive('getDecodedBody')
-        ->once()
-        ->andReturn(['data' => 'valid_data'])
-        ->getMock();
+            ->shouldReceive('isError')
+            ->once()
+            ->andReturn(false)
+            ->shouldReceive('getDecodedBody')
+            ->once()
+            ->andReturn(['data' => 'valid_data'])
+            ->getMock();
         $facebookMock = m::mock('\Facebook\Facebook');
         $facebookMock
             ->shouldReceive('sendRequest')
@@ -1211,10 +1207,10 @@ class FacebookTest extends PHPUnit_Framework_TestCase
         $facebook = new Facebook();
 
         $responseMock = m::mock('\Facebook\FacebookResponse')
-        ->shouldReceive('isError')
-        ->once()
-        ->andReturn(true)
-        ->getMock();
+            ->shouldReceive('isError')
+            ->once()
+            ->andReturn(true)
+            ->getMock();
         $facebookMock = m::mock('\Facebook\Facebook');
         $facebookMock
             ->shouldReceive('sendRequest')
@@ -1224,6 +1220,98 @@ class FacebookTest extends PHPUnit_Framework_TestCase
         $facebook->setFacebookLibrary($facebookMock);
 
         $response = $facebook->getInstagramUserStories($userId, $fieldsArray);
+
+        $this->assertEquals($response, null);
+    }
+
+    public function testGetInstagramStoryInsights()
+    {
+        $mediaId = "123456789";
+        $decodedInsightsResponseData = [
+            'data' => [
+                [
+                    'name' => 'reach',
+                    'period' => 'lifetime',
+                    'values' => [
+                        [
+                            'value' => 123,
+                        ],
+                    ],
+                ],
+                [
+                    'name' => 'taps_forward',
+                    'period' => 'lifetime',
+                    'values' => [
+                        [
+                            'value' => 12,
+                        ],
+                    ],
+                ],
+                [
+                    'name' => 'impressions',
+                    'period' => 'lifetime',
+                    'values' => [
+                        [
+                            'value' => 200,
+                        ],
+                    ],
+                ],
+            ]
+        ];
+
+        $metricsArray = ['reach', 'impressions', 'taps_forward'];
+        $metrics = join(",", $metricsArray);
+
+        $facebook = new Facebook();
+
+        $responseMock = m::mock('\Facebook\FacebookResponse')
+            ->shouldReceive('isError')
+            ->once()
+            ->andReturn(false)
+            ->shouldReceive('getDecodedBody')
+            ->once()
+            ->andReturn($decodedInsightsResponseData)
+            ->getMock();
+        $facebookMock = m::mock('\Facebook\Facebook');
+        $facebookMock
+            ->shouldReceive('sendRequest')
+            ->once()
+            ->with('GET', "/${mediaId}/insights", ["metric" => $metrics])
+            ->andReturn($responseMock);
+        $facebook->setFacebookLibrary($facebookMock);
+
+        $response = $facebook->getInstagramStoryInsights($mediaId, $metricsArray);
+
+        $this->assertEquals($response, [
+            'reach' => 123,
+            'taps_forward' => 12,
+            'impressions' => 200
+        ]);
+    }
+
+    public function testGetInstagramStoryInsightsNullIfError()
+    {
+        $mediaId = "123456789";
+
+        $metricsArray = ['reach', 'impressions', 'taps_forward'];
+        $metrics = join(",", $metricsArray);
+
+        $facebook = new Facebook();
+
+        $responseMock = m::mock('\Facebook\FacebookResponse')
+            ->shouldReceive('isError')
+            ->once()
+            ->andReturn(true)
+            ->getMock();
+        $facebookMock = m::mock('\Facebook\Facebook');
+        $facebookMock
+            ->shouldReceive('sendRequest')
+            ->once()
+            ->with('GET', "/${mediaId}/insights", ["metric" => $metrics])
+            ->andReturn($responseMock);
+        $facebook->setFacebookLibrary($facebookMock);
+
+        $response = $facebook->getInstagramStoryInsights($mediaId, $metricsArray);
 
         $this->assertEquals($response, null);
     }
