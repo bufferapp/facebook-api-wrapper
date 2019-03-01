@@ -322,6 +322,22 @@ class Facebook
         return $body["data"];
     }
 
+    public function getInstagramStoryInsights($storyId, $metrics)
+    {
+        $formattedMetrics = join(",", $metrics);
+
+        $response = $this->sendRequest("GET", "/{$storyId}/insights", [
+            "metric" => $formattedMetrics,
+        ]);
+
+        if ($response->isError()) {
+            return null;
+        }
+        $insights = $this->processInsightsResponse($response);
+
+        return $insights;
+    }
+
     /*
      * Create a single request
      */
