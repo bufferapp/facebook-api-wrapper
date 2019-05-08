@@ -1315,4 +1315,35 @@ class FacebookTest extends PHPUnit_Framework_TestCase
 
         $this->assertEquals($response, null);
     }
+
+    public function testGetAccountsWorksAsExpected()
+    {
+        $me = [
+            [
+                'instagram_business_account' => [
+                    'id' => '123455678'
+                ],
+                'id' => '2345',
+                'access_token' => 'Test Page',
+            ]
+        ];
+        $facebook = new Facebook();
+        $responseMock = m::mock('\Facebook\FacebookResponse')
+            ->shouldReceive('getDecodedBody')
+            ->once()
+            ->andReturn($me)
+            ->getMock();
+        $facebookMock = m::mock('\Facebook\Facebook');
+        $facebookMock
+            ->shouldReceive('sendRequest')
+            ->once()
+            ->with('GET', '/me/accounts', ["fields" => ['instagram_business_account', 'access_token']])
+            ->andReturn($responseMock);
+        $facebook->setFacebookLibrary($facebookMock);
+
+        $response = $facebook->getAccounts();
+
+        $this->assertEquals('2345', $response[0]['id']);
+        $this->assertEquals('123455678', $response[0]['instagram_business_account']['id']);
+    }
 }

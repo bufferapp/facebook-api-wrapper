@@ -97,8 +97,7 @@ class Facebook
                     $responseData = $this->extractPageInsightsMetricsFromResponse($decodedBody);
                     foreach ($responseData as $metricKey => $values) {
                         $existingValues = isset($data[$metricKey]) ?
-                            $data[$metricKey] :
-                            [];
+                            $data[$metricKey] : [];
                         $data[$metricKey] = array_merge($existingValues, $values);
                     }
                 }
@@ -318,7 +317,7 @@ class Facebook
             return null;
         }
         $body = $response->getDecodedBody();
-        
+
         return $body["data"];
     }
 
@@ -436,7 +435,7 @@ class Facebook
     public function getIntervalsForPeriod($since, $until)
     {
         $maxDaysPerRequest = 30;
-        $numDays = abs($since - $until)/60/60/24;
+        $numDays = abs($since - $until) / 60 / 60 / 24;
 
 
         if ($numDays <= $maxDaysPerRequest) {
@@ -471,5 +470,16 @@ class Facebook
     public function getMe()
     {
         return $this->sendRequest("GET", "/me")->getDecodedBody();
+    }
+
+    public function getAccounts()
+    {
+        return $this->sendRequest(
+            "GET",
+            "/me/accounts",
+            [
+                "fields" => ['instagram_business_account', 'access_token']
+            ]
+        )->getDecodedBody();
     }
 }
