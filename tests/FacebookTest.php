@@ -1337,7 +1337,7 @@ class FacebookTest extends PHPUnit_Framework_TestCase
         $facebookMock
             ->shouldReceive('sendRequest')
             ->once()
-            ->with('GET', '/me/accounts', ["fields" => ['instagram_business_account', 'access_token']])
+            ->with('GET', '/me/accounts', ["fields" => 'instagram_business_account,access_token'])
             ->andReturn($responseMock);
         $facebook->setFacebookLibrary($facebookMock);
 

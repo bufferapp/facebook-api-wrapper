@@ -474,11 +474,13 @@ class Facebook
 
     public function getAccounts()
     {
+        $fieldsString = join(",", ['instagram_business_account', 'access_token']);
+
         return $this->sendRequest(
             "GET",
             "/me/accounts",
             [
-                "fields" => ['instagram_business_account', 'access_token']
+                "fields" => $fieldsString
             ]
         )->getDecodedBody();
     }
