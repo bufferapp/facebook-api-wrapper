@@ -467,6 +467,11 @@ class Facebook
         return $this->sendRequest("POST", "/${pageId}/subscribed_apps")->getDecodedBody();
     }
 
+    public function unsubscribeFromWebhook($pageId)
+    {
+        return $this->sendRequest("DELETE", "/${pageId}/subscribed_apps")->getDecodedBody();
+    }
+
     public function getMe()
     {
         return $this->sendRequest("GET", "/me")->getDecodedBody();
