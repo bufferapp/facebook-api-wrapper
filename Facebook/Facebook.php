@@ -234,7 +234,7 @@ class Facebook
     {
         $since = $since ? $since : strtotime("yesterday");
         $until = $until ? $until : strtotime("now");
-        $fields = 'id,created_time,updated_time,source,attachments,link,message';
+        $fields = 'id,created_time,updated_time,attachments,message';
 
         $response = $this->client->get("/{$pageId}/posts?since={$since}&until={$until}&limit={$limit}&fields={$fields}");
         $rawResponse = json_decode($response->getBody(), true);
