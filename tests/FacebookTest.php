@@ -785,7 +785,7 @@ class FacebookTest extends PHPUnit_Framework_TestCase
             "until" => $until,
             "since" => $since,
         ];
-        $expectedGetParams = ["/2222222/posts?since={$since}&until={$until}&limit=100&fields=id,created_time,updated_time,source,attachments,link,message"];
+        $expectedGetParams = ["/2222222/posts?since={$since}&until={$until}&limit=100&fields=id,created_time,updated_time,attachments,message"];
         $facebookMock->shouldReceive('get')->withArgs($expectedGetParams)->once()->andReturn($responseMock);
         $facebook->setFacebookLibrary($facebookMock);
         $facebook->getPagePosts(self::FB_PAGE_ID, $since, $until, 100);
