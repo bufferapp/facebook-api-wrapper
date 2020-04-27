@@ -337,6 +337,20 @@ class Facebook
         return $insights;
     }
 
+    public function getMediaComment($commentId, $fields)
+    {
+
+        $response = $this->sendRequest("GET", "/{$commentId}", [
+            "fields" => join(",", $fields),
+        ]);
+
+        if ($response->isError()) {
+            return [];
+        }
+
+        return json_decode($response->getBody(), true);
+    }
+
     /*
      * Create a single request
      */
