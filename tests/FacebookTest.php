@@ -984,7 +984,7 @@ class FacebookTest extends PHPUnit_Framework_TestCase
         $facebookMock
             ->shouldReceive('sendRequest')
             ->once()
-            ->with('POST', "/${pageId}/subscribed_apps", [])
+            ->with('POST', "/${pageId}/subscribed_apps", ["subscribed_fields" => 'email' ])
             ->andReturn($responseMock);
         $facebook->setFacebookLibrary($facebookMock);
 

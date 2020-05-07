@@ -478,7 +478,12 @@ class Facebook
 
     public function subscribeToWebhook($pageId)
     {
-        return $this->sendRequest("POST", "/${pageId}/subscribed_apps")->getDecodedBody();
+        // With Graph API version 3.2, subscribed_apps requires the subscribed_fields parameter,
+        // which currently does not support Instagram webhooks fields
+        // as a workaround we are subscribing to the email fields, to get the webhooks up and running
+        // so that it will return story_insights events
+        $params = ["subscribed_fields" => 'email' ];
+        return $this->sendRequest("POST", "/${pageId}/subscribed_apps", $params)->getDecodedBody();
     }
 
     public function unsubscribeFromWebhook($pageId)
