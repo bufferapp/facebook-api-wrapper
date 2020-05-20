@@ -1369,4 +1369,73 @@ class FacebookTest extends PHPUnit_Framework_TestCase
         $this->assertEquals('2345', $response[0]['id']);
         $this->assertEquals('123455678', $response[0]['instagram_business_account']['id']);
     }
+
+    public function testGetAccountsWorksWithoutPagination()
+    {
+        $me = [
+            'data' => [
+                [
+                    'id' => 'act_123456789',
+                    'account_id' => '123456789'
+                ]
+            ],
+            'paging' => [
+                'before' => 'abc123456',
+                'after' => 'abc123456'
+            ]
+        ];
+        $facebook = new Facebook();
+        $responseMock = m::mock('\Facebook\FacebookResponse')
+            ->shouldReceive('getDecodedBody')
+            ->once()
+            ->andReturn($me)
+            ->getMock();
+        $facebookMock = m::mock('\Facebook\Facebook');
+        $facebookMock
+            ->shouldReceive('sendRequest')
+            ->once()
+            ->with('GET', '/me/adaccounts', ['fields' => 'account_id,currency,promote_pages{id,instagram_business_account}'])
+            ->andReturn($responseMock);
+        $facebook->setFacebookLibrary($facebookMock);
+
+        $response = $facebook->getAdAccounts();
+
+        $this->assertEquals('act_123456789', $response['data'][0]['id']);
+    }
+
+    public function testGetAccountsWorksWithPagination()
+    {
+        $me = [
+            'data' => [
+                [
+                    'id' => 'act_123456999',
+                    'account_id' => '123456999'
+                ]
+            ],
+            'paging' => [
+                'before' => 'abc123456',
+                'after' => 'abc123456'
+            ]
+        ];
+        $facebook = new Facebook();
+        $responseMock = m::mock('\Facebook\FacebookResponse')
+            ->shouldReceive('getDecodedBody')
+            ->once()
+            ->andReturn($me)
+            ->getMock();
+        $facebookMock = m::mock('\Facebook\Facebook');
+        $facebookMock
+            ->shouldReceive('sendRequest')
+            ->once()
+            ->with('GET', '/me/adaccounts', [
+                'fields' => 'account_id,currency,promote_pages{id,instagram_business_account}',
+                'after' => 'mnb9876'
+            ])
+            ->andReturn($responseMock);
+        $facebook->setFacebookLibrary($facebookMock);
+
+        $response = $facebook->getAdAccounts('mnb9876');
+
+        $this->assertEquals('act_123456999', $response['data'][0]['id']);
+    }
 }
