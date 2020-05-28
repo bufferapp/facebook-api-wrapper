@@ -508,4 +508,27 @@ class Facebook
             ]
         )->getDecodedBody();
     }
+
+    public function getAdAccounts($after = null)
+    {
+        $fieldsString = join(",", [
+            'account_id',
+            'currency',
+            'promote_pages{id,instagram_business_account}'
+        ]);
+
+        $params = [
+            "fields" => $fieldsString
+        ];
+
+        if ($after) {
+            $params["after"] = $after;
+        }
+
+        return $this->sendRequest(
+            "GET",
+            "/me/adaccounts",
+            $params
+        )->getDecodedBody();
+    }
 }
