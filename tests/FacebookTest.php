@@ -1438,4 +1438,34 @@ class FacebookTest extends PHPUnit_Framework_TestCase
 
         $this->assertEquals('act_123456999', $response['data'][0]['id']);
     }
+
+    public function testGetTokenScopes()
+    {
+        $inputToken = 'test_token';
+        $scopes = [
+            'data' => [
+                'scopes' => [
+                    'email',
+                    'public_profile'
+                ]
+            ]
+        ];
+        $facebook = new Facebook();
+        $responseMock = m::mock('\Facebook\FacebookResponse')
+            ->shouldReceive('getDecodedBody')
+            ->once()
+            ->andReturn($scopes)
+            ->getMock();
+        $facebookMock = m::mock('\Facebook\Facebook');
+        $facebookMock
+            ->shouldReceive('sendRequest')
+            ->once()
+            ->with('GET', '/debug_token', ['fields' => 'scopes', 'input_token' => 'test_token'])
+            ->andReturn($responseMock);
+        $facebook->setFacebookLibrary($facebookMock);
+
+        $response = $facebook->getTokenScopes($inputToken);
+
+        $this->assertEquals(['email', 'public_profile'], $response['data']['scopes']);
+    }
 }
