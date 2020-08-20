@@ -531,4 +531,22 @@ class Facebook
             $params
         )->getDecodedBody();
     }
+
+    public function getTokenScopes($inputToken)
+    {
+        $fieldsString = join(",", [
+            "scopes",
+        ]);
+
+        $params = [
+            "fields" => $fieldsString,
+            "input_token" => $inputToken
+        ];
+
+        return $this->sendRequest(
+            "GET",
+            "/debug_token",
+            $params
+        )->getDecodedBody();
+    }
 }
