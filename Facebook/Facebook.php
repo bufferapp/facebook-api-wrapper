@@ -13,7 +13,7 @@ class Facebook
         $this->client = new FacebookClient([
             'app_id' => getenv('FACEBOOK_APP_ID'),
             'app_secret' => getenv('FACEBOOK_APP_SECRET'),
-            'default_graph_version' => 'v13.0',
+            'default_graph_version' => 'v15.0',
         ]);
     }
 
