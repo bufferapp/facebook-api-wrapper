@@ -8,7 +8,7 @@ use Mockery as m;
 use \Facebook\FacebookRequest;
 use \Facebook\GraphNodes\GraphEdge;
 
-class FacebookTest extends PHPUnit_Framework_TestCase
+class FacebookTest extends \PHPUnit\Framework\TestCase
 {
     const FB_POST_ID = '11111_22222';
     const FB_PAGE_ID = '2222222';
@@ -16,13 +16,13 @@ class FacebookTest extends PHPUnit_Framework_TestCase
 
     private $facebook = null;
 
-    public function setUp()
+    public function setUp(): void
     {
         parent::setUp();
         $this->facebook = new Facebook();
     }
 
-    public function tearDown()
+    public function tearDown(): void
     {
         m::close();
     }
@@ -1074,7 +1074,7 @@ class FacebookTest extends PHPUnit_Framework_TestCase
         $since = strtotime('- 30 days');
 
         $intervals = $facebook->getIntervalsForPeriod($since, $until);
-        $this->assertInternalType('array', $intervals);
+        $this->assertIsArray($intervals);
         $this->assertEquals([
             [
                 'since' => $since,
@@ -1087,7 +1087,7 @@ class FacebookTest extends PHPUnit_Framework_TestCase
         $since = strtotime('- 93 days');
 
         $intervals = $facebook->getIntervalsForPeriod($since, $until);
-        $this->assertInternalType('array', $intervals);
+        $this->assertIsArray($intervals);
         $this->assertEquals([
             [
                 'since' => $since,
