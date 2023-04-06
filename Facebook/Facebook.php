@@ -381,6 +381,8 @@ class Facebook
                 foreach ($metricValuesByDay as $key => $value) {
                     if (isset($value["end_time"]) && isset($value["value"])) {
                         $result[$metricName][$value["end_time"]] =  $value["value"];
+                    } else if (isset($value["value"])) {
+                        $result[$metricName] =  $value["value"];
                     }
                 }
             }
@@ -482,13 +484,13 @@ class Facebook
         // which currently does not support Instagram webhooks fields
         // as a workaround we are subscribing to the email fields, to get the webhooks up and running
         // so that it will return story_insights events
-        $params = ["subscribed_fields" => 'email' ];
-        return $this->sendRequest("POST", "/${pageId}/subscribed_apps", $params)->getDecodedBody();
+        $params = ["subscribed_fields" => 'email'];
+        return $this->sendRequest("POST", "/{$pageId}/subscribed_apps", $params)->getDecodedBody();
     }
 
     public function unsubscribeFromWebhook($pageId)
     {
-        return $this->sendRequest("DELETE", "/${pageId}/subscribed_apps")->getDecodedBody();
+        return $this->sendRequest("DELETE", "/{$pageId}/subscribed_apps")->getDecodedBody();
     }
 
     public function getMe()
