@@ -267,6 +267,8 @@ class Facebook
                 $timestamp = strtotime($post->getField("timestamp"));
                 if ($this->isTimestampWitinDateRange($timestamp, $since, $until)) {
                     $posts[] = $post->getField("id");
+                } else {
+                    return $posts;
                 }
             }
             $graphEdge = $this->client->next($graphEdge);

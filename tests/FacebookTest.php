@@ -820,7 +820,6 @@ class FacebookTest extends \PHPUnit\Framework\TestCase
             ->getMock();
         $facebookMock = m::mock('\Facebook\Facebook');
         $facebookMock->shouldReceive('get')->once()->andReturn($responseMock);
-        $facebookMock->shouldReceive('next')->once()->withArgs([$graphEdge])->andReturn(null);
         $facebook->setFacebookLibrary($facebookMock);
 
         $posts = $facebook->getUserMedias(
@@ -878,13 +877,8 @@ class FacebookTest extends \PHPUnit\Framework\TestCase
 
         $since  = "1493826552";
         $until = "1496418552";
-        $params = [
-            "until" => $until,
-            "since" => $since,
-        ];
         $expectedGetParams = ["/55556666/media?fields=timestamp"];
         $facebookMock->shouldReceive('get')->withArgs($expectedGetParams)->once()->andReturn($responseMock);
-        $facebookMock->shouldReceive('next')->withArgs([$graphEdge])->once()->andReturn(null);
         $facebook->setFacebookLibrary($facebookMock);
         $facebook->getUserMedias(self::IG_USER_ID, $since, $until);
     }
