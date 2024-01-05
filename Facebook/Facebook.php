@@ -13,7 +13,7 @@ class Facebook
         $this->client = new FacebookClient([
             'app_id' => getenv('FACEBOOK_APP_ID'),
             'app_secret' => getenv('FACEBOOK_APP_SECRET'),
-            'default_graph_version' => 'v14.0',
+            'default_graph_version' => 'v16.0',
         ]);
     }
 
@@ -104,6 +104,36 @@ class Facebook
             }
         }
 
+
+        return $data;
+    }
+
+    /*
+     * Get the lifetime page insights audience data for the given page.
+     * https://developers.facebook.com/docs/instagram-api/reference/ig-user/insights#metrics
+     */
+    public function getPageInsightsAudienceData($pageId, $metric, $breakdown)
+    {
+        $params = [
+            "metric" => $metric,
+            "breakdown" => $breakdown,
+            "metric_type" => "total_value",
+            "period" => "lifetime",
+        ];
+
+        $data = [];
+        $response = $this->sendRequest("GET", "/{$pageId}/insights", $params);
+
+        if (!empty($response)) {
+            $decodedBody = $response->getDecodedBody();
+
+            if (!empty($decodedBody) && is_array($decodedBody)) {
+                $responseData = $decodedBody["data"];
+                if(!empty($responseData) && isset($responseData[0]["total_value"])) {
+                    $data = $responseData[0]["total_value"]["breakdowns"][0];
+                }
+            }
+        }
 
         return $data;
     }
@@ -390,7 +420,7 @@ class Facebook
             }
         }
         return $result;
-    }
+    }   
 
     /*
      * Make Graph API /insights response to a human readable associative array.

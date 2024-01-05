@@ -370,6 +370,82 @@ class FacebookTest extends \PHPUnit\Framework\TestCase
         $this->assertEquals($insightsData["page_fans"]["2017-05-29T07:00:00+0000"], 111);
     }
 
+    public function testGetPageInsightsAudienceData()
+    {
+        $decodedAudienceData = [
+            'data' => [
+                0 => [
+                    'name' => 'follower_demographics',
+                    'period' => 'lifetime',
+                    'total_value' => [
+                        'breakdowns' => [
+                            0 => [
+                                'dimension_keys' => ['city'],
+                                'results' => [
+                                    0 => [
+                                        'dimension_values' => ['Sydney, New South Wales'],
+                                        'value' => 631
+                                    ],
+                                    1 => [
+                                        'dimension_values' => ['London, England'],
+                                        'value' => 1142
+                                    ],
+                                    2 => [
+                                        'dimension_values' => ['Casablanca, Grand Casablanca'],
+                                        'value' => 321
+                                    ],
+                                ]
+                            ]
+                        ],
+                    ],
+                ],
+            ]
+        ];
+
+        $facebook = new Facebook();
+        $responseMock = m::mock('\Facebook\FacebookResponse')
+            ->shouldReceive('getDecodedBody')
+            ->once()
+            ->andReturn($decodedAudienceData)
+            ->getMock();
+        $facebookMock = m::mock('\Facebook\Facebook');
+        $facebookMock->shouldReceive('sendRequest')->once()->andReturn($responseMock);
+        $facebook->setFacebookLibrary($facebookMock);
+
+        $audienceData = $facebook->getPageInsightsAudienceData(
+            self::FB_PAGE_ID,
+            'follower_demographics',
+            'city'
+        );
+
+        $this->assertEquals(['city'], $audienceData['dimension_keys']);
+    }
+
+    public function testGetPageInsightsAudienceDataEmptyResponse()
+    {
+        $decodedAudienceData = [
+            'data' => []
+        ];
+
+        $facebook = new Facebook();
+        $responseMock = m::mock('\Facebook\FacebookResponse')
+        ->shouldReceive('getDecodedBody')
+        ->once()
+            ->andReturn($decodedAudienceData)
+            ->getMock();
+        $facebookMock = m::mock('\Facebook\Facebook');
+        $facebookMock->shouldReceive('sendRequest')->once()->andReturn($responseMock);
+        $facebook->setFacebookLibrary($facebookMock);
+
+        $audienceData = $facebook->getPageInsightsAudienceData(
+            self::FB_PAGE_ID,
+            'follower_demographics',
+            'city'
+        );
+
+        $this->assertEquals([], $audienceData);
+    }
+
     public function testGetPagePostGraphMetricsData()
     {
         $decodedGraphResponseData = [
