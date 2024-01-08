@@ -369,6 +369,33 @@ class Facebook
         return $insights;
     }
 
+    public function getInstagramStoryNavigationInsights($storyId)
+    {
+        $response = $this->sendRequest("GET", "/{$storyId}/insights", [
+            "metric" => "navigation",
+            "breakdown" => "story_navigation_action_type",
+        ]);
+
+        if ($response->isError()) {
+            return null;
+        }
+
+        $data = [];
+
+        if (!empty($response)) {
+            $decodedBody = $response->getDecodedBody();
+
+            if (!empty($decodedBody) && is_array($decodedBody)) {
+                $responseData = $decodedBody["data"];
+                if (!empty($responseData) && isset($responseData[0]["total_value"])) {
+                    $data = $responseData[0]["total_value"]["breakdowns"][0];
+                }
+            }
+        }
+
+        return $data;
+    }
+
     public function getMediaComment($commentId, $fields)
     {
 
