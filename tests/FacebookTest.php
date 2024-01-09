@@ -1409,6 +1409,132 @@ class FacebookTest extends \PHPUnit\Framework\TestCase
         $this->assertEquals($response, null);
     }
 
+    public function testGetInstagramStoryNavigationInsightsNullIfError()
+    {
+        $mediaId = '123456789';
+
+        $params = [
+            'metric' => 'navigation',
+            'breakdown' => 'story_navigation_action_type',
+        ];
+
+        $facebook = new Facebook();
+
+        $responseMock = m::mock('\Facebook\FacebookResponse')
+            ->shouldReceive('isError')
+            ->once()
+            ->andReturn(true)
+            ->getMock();
+        $facebookMock = m::mock('\Facebook\Facebook');
+        $facebookMock
+            ->shouldReceive('sendRequest')
+            ->once()
+            ->with('GET', "/${mediaId}/insights", $params)
+            ->andReturn($responseMock);
+        $facebook->setFacebookLibrary($facebookMock);
+
+        $response = $facebook->getInstagramStoryNavigationInsights($mediaId);
+
+        $this->assertEquals($response, null);
+    }
+
+    public function testGetInstagramStoryNavigationInsightsReturnsData()
+    {
+        $mediaId = '123456789';
+
+        $params = [
+            'metric' => 'navigation',
+            'breakdown' => 'story_navigation_action_type',
+        ];
+
+        $facebook = new Facebook();
+
+        $decodedNavigationData = [
+            'data' => [
+                0 => [
+                    'name' => 'navigation',
+                    'period' => 'lifetime',
+                    'total_value' => [
+                        'breakdowns' => [
+                            0 => [
+                                'dimension_keys' => ['story_navigation_action_type'],
+                                'results' => [
+                                    0 => [
+                                        'dimension_values' => ['swipe_forward'],
+                                        'value' => 2
+                                    ],
+                                    1 => [
+                                        'dimension_values' => ['tap_exit'],
+                                        'value' => 20
+                                    ],
+                                    2 => [
+                                        'dimension_values' => ['tap_back'],
+                                        'value' => 4
+                                    ],
+                                    3 => [
+                                        'dimension_values' => ['tap_forward'],
+                                        'value' => 75
+                                    ],
+                                ]
+                            ]
+                        ],
+                    ],
+                ],
+            ]
+        ];
+
+        $responseMock = m::mock('\Facebook\FacebookResponse')
+            ->shouldReceive('isError')
+            ->andReturn(false)
+            ->shouldReceive('getDecodedBody')
+            ->andReturn($decodedNavigationData)
+            ->getMock();
+        $facebookMock = m::mock('\Facebook\Facebook');
+        $facebookMock
+            ->shouldReceive('sendRequest')
+            ->once()
+            ->with('GET', "/${mediaId}/insights", $params)
+            ->andReturn($responseMock);
+        $facebook->setFacebookLibrary($facebookMock);
+
+        $response = $facebook->getInstagramStoryNavigationInsights($mediaId);
+
+        $this->assertEquals($response['results'][0]['dimension_values'][0], 'swipe_forward');
+        $this->assertEquals($response['results'][0]['value'], 2);
+    }
+
+    public function testGetInstagramStoryNavigationInsightsEmptyResponse()
+    {
+        $mediaId = '123456789';
+        $params = [
+            'metric' => 'navigation',
+            'breakdown' => 'story_navigation_action_type',
+        ];
+
+        $facebook = new Facebook();
+        $decodedNavigationData = [
+            'data' => []
+        ];
+
+        $responseMock = m::mock('\Facebook\FacebookResponse')
+        ->shouldReceive('isError')
+        ->andReturn(false)
+            ->shouldReceive('getDecodedBody')
+            ->andReturn($decodedNavigationData)
+            ->getMock();
+        $facebookMock = m::mock('\Facebook\Facebook');
+        $facebookMock
+            ->shouldReceive('sendRequest')
+            ->once()
+            ->with('GET', "/${mediaId}/insights", $params)
+            ->andReturn($responseMock);
+        $facebook->setFacebookLibrary($facebookMock);
+
+        $response = $facebook->getInstagramStoryNavigationInsights($mediaId);
+
+        $this->assertEquals([], $response);
+    }
+
     public function testGetAccountsWorksAsExpected()
     {
         $me = [
