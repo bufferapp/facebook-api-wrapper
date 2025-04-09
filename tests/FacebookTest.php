@@ -1357,19 +1357,14 @@ class FacebookTest extends \PHPUnit\Framework\TestCase
 
         $facebook = new Facebook();
 
-        $responseMock = m::mock('\Facebook\FacebookResponse')
-            ->shouldReceive('isError')
-            ->once()
-            ->andReturn(false)
-            ->shouldReceive('getDecodedBody')
-            ->once()
-            ->andReturn($decodedInsightsResponseData)
-            ->getMock();
+        $responseMock = m::mock('\Facebook\FacebookResponse');
+        $responseMock->shouldReceive('isError')->once()->andReturn(false);
+        $responseMock->shouldReceive('getDecodedBody')->once()->andReturn($decodedInsightsResponseData);
+
         $facebookMock = m::mock('\Facebook\Facebook');
-        $facebookMock
-            ->shouldReceive('sendRequest')
+        $facebookMock->shouldReceive('sendRequest')
             ->once()
-            ->with('GET', "/${mediaId}/insights", ["metric" => $metrics])
+            ->with('GET', '/' . $mediaId . '/insights', ["metric" => $metrics])
             ->andReturn($responseMock);
         $facebook->setFacebookLibrary($facebookMock);
 
@@ -1400,7 +1395,7 @@ class FacebookTest extends \PHPUnit\Framework\TestCase
         $facebookMock
             ->shouldReceive('sendRequest')
             ->once()
-            ->with('GET', "/${mediaId}/insights", ["metric" => $metrics])
+            ->with('GET', '/' . $mediaId . '/insights', ["metric" => $metrics])
             ->andReturn($responseMock);
         $facebook->setFacebookLibrary($facebookMock);
 
@@ -1429,7 +1424,7 @@ class FacebookTest extends \PHPUnit\Framework\TestCase
         $facebookMock
             ->shouldReceive('sendRequest')
             ->once()
-            ->with('GET', "/${mediaId}/insights", $params)
+            ->with('GET', '/' . $mediaId . '/insights', $params)
             ->andReturn($responseMock);
         $facebook->setFacebookLibrary($facebookMock);
 
@@ -1493,7 +1488,7 @@ class FacebookTest extends \PHPUnit\Framework\TestCase
         $facebookMock
             ->shouldReceive('sendRequest')
             ->once()
-            ->with('GET', "/${mediaId}/insights", $params)
+            ->with('GET', '/' . $mediaId . '/insights', $params)
             ->andReturn($responseMock);
         $facebook->setFacebookLibrary($facebookMock);
 
@@ -1526,7 +1521,7 @@ class FacebookTest extends \PHPUnit\Framework\TestCase
         $facebookMock
             ->shouldReceive('sendRequest')
             ->once()
-            ->with('GET', "/${mediaId}/insights", $params)
+            ->with('GET', '/' . $mediaId . '/insights', $params)
             ->andReturn($responseMock);
         $facebook->setFacebookLibrary($facebookMock);
 
@@ -1663,5 +1658,55 @@ class FacebookTest extends \PHPUnit\Framework\TestCase
         $response = $facebook->getTokenScopes($inputToken);
 
         $this->assertEquals(['email', 'public_profile'], $response['data']['scopes']);
+    }
+
+    public function testGetInstagramStoryInsightsWithMetricType()
+    {
+        $mediaId = "123456789";
+        $decodedInsightsResponseData = [
+            'data' => [
+                [
+                    'name' => 'reach',
+                    'period' => 'lifetime',
+                    'values' => [
+                        [
+                            'value' => 123,
+                        ],
+                    ],
+                ],
+                [
+                    'name' => 'views',
+                    'period' => 'lifetime',
+                    'values' => [
+                        [
+                            'value' => 500,
+                        ],
+                    ],
+                ],
+            ]
+        ];
+
+        $metricsArray = ['reach', 'views'];
+        $metrics = join(",", $metricsArray);
+
+        $facebook = new Facebook();
+
+        $responseMock = m::mock('\Facebook\FacebookResponse');
+        $responseMock->shouldReceive('isError')->once()->andReturn(false);
+        $responseMock->shouldReceive('getDecodedBody')->once()->andReturn($decodedInsightsResponseData);
+
+        $facebookMock = m::mock('\Facebook\Facebook');
+        $facebookMock->shouldReceive('sendRequest')
+            ->once()
+            ->with('GET', '/' . $mediaId . '/insights', ["metric" => $metrics, "metric_type" => "total_values"])
+            ->andReturn($responseMock);
+        $facebook->setFacebookLibrary($facebookMock);
+
+        $response = $facebook->getInstagramStoryInsights($mediaId, $metricsArray, "total_values");
+
+        $this->assertEquals($response, [
+            'reach' => 123,
+            'views' => 500
+        ]);
     }
 }

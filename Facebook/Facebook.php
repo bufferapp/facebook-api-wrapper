@@ -353,13 +353,18 @@ class Facebook
         return $body["data"];
     }
 
-    public function getInstagramStoryInsights($storyId, $metrics)
+    public function getInstagramStoryInsights($storyId, $metrics, $metric_type = null)
     {
         $formattedMetrics = join(",", $metrics);
-
-        $response = $this->sendRequest("GET", "/{$storyId}/insights", [
+        $params = [
             "metric" => $formattedMetrics,
-        ]);
+        ];
+
+        if (!is_null($metric_type)) {
+            $params["metric_type"] = $metric_type;
+        }
+
+        $response = $this->sendRequest("GET", "/{$storyId}/insights", $params);
 
         if ($response->isError()) {
             return null;
