@@ -230,17 +230,22 @@ class Facebook
     /*
      * Get page batch posts insights data for the given posts and metrics.
      */
-    public function getPageBatchPostsInsightsMetricData($postIds, $insightsMetrics)
+    public function getPageBatchPostsInsightsMetricData($postIds, $insightsMetrics, $metric_type = null)
     {
         $result = [];
         $batchRequests = [];
         $insightsMetricsString = join(",", $insightsMetrics);
+        $params = [
+            "metric" => $insightsMetricsString,
+            "period" => "lifetime",
+            "until" => strtotime("now"),
+        ];
+
+        if (!is_null($metric_type)) {
+            $params["metric_type"] = $metric_type;
+        }
         foreach ($postIds as $postId) {
-            $request = $this->createRequest("GET", "/{$postId}/insights", [
-                "metric" => $insightsMetricsString,
-                "period" => "lifetime",
-                "until" => strtotime("now"),
-            ]);
+            $request = $this->createRequest("GET", "/{$postId}/insights", $params);
             $batchRequests[$postId] = $request;
         }
 
