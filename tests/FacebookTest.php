@@ -431,7 +431,7 @@ class FacebookTest extends \PHPUnit\Framework\TestCase
         $responseMock = m::mock('\Facebook\FacebookResponse')
         ->shouldReceive('getDecodedBody')
         ->once()
-            ->andReturn($decodedAudienceData)
+        ->andReturn($decodedAudienceData)
             ->getMock();
         $facebookMock = m::mock('\Facebook\Facebook');
         $facebookMock->shouldReceive('sendRequest')->once()->andReturn($responseMock);
@@ -706,6 +706,103 @@ class FacebookTest extends \PHPUnit\Framework\TestCase
         $this->assertEquals($graphData['33333_444444']['post_impressions'], 14);
         $this->assertEquals($graphData['33333_444444']['post_fan_reach'], 28);
         $this->assertEquals($graphData['33333_444444']['post_consumptions'], 42);
+    }
+
+    public function testGetPageBatchPostsInsightsMetricDataWithTotalValues()
+    {
+        $facebook = new Facebook();
+
+        $decodedResponseData1 = [
+            'data' => [
+                [
+                    'name' => 'post_impressions',
+                    'period' => 'lifetime',
+                    'total_value' => 150,
+                    'values' => [['value' => 150]]
+                ],
+                [
+                    'name' => 'post_fan_reach',
+                    'period' => 'lifetime',
+                    'total_value' => 300,
+                    'values' => [['value' => 300]]
+                ],
+                [
+                    'name' => 'post_consumptions',
+                    'period' => 'lifetime',
+                    'total_value' => 75,
+                    'values' => [['value' => 75]]
+                ],
+            ]
+        ];
+
+        $decodedResponseData2 = [
+            'data' => [
+                [
+                    'name' => 'post_impressions',
+                    'period' => 'lifetime',
+                    'total_value' => 250,
+                    'values' => [['value' => 250]]
+                ],
+                [
+                    'name' => 'post_fan_reach',
+                    'period' => 'lifetime',
+                    'total_value' => 500,
+                    'values' => [['value' => 500]]
+                ],
+                [
+                    'name' => 'post_consumptions',
+                    'period' => 'lifetime',
+                    'total_value' => 125,
+                    'values' => [['value' => 125]]
+                ],
+            ]
+        ];
+
+        $responseMock1 = m::mock('\Facebook\FacebookResponse')
+            ->shouldReceive('getDecodedBody')
+            ->once()
+            ->andReturn($decodedResponseData1)
+            ->getMock();
+        $responseMock2 = m::mock('\Facebook\FacebookResponse')
+            ->shouldReceive('getDecodedBody')
+            ->once()
+            ->andReturn($decodedResponseData2)
+            ->getMock();
+
+        $getIteratorMock = new ArrayIterator([
+            "11111_22222" => $responseMock1,
+            "33333_444444" => $responseMock2
+        ]);
+
+        $responseBatchMock = m::mock('\Facebook\FacebookBatchResponse')
+            ->shouldReceive('getIterator')
+            ->once()
+            ->andReturn($getIteratorMock)
+            ->getMock();
+
+        $requestMock1 = m::mock('\Facebook\FacebookRequest');
+        $requestMock2 = m::mock('\Facebook\FacebookRequest');
+
+        $postIds = ['11111_22222', '33333_444444'];
+        $facebookMock = m::mock('\Facebook\Facebook');
+        $facebook->setFacebookLibrary($facebookMock);
+
+        $facebookMock->shouldReceive('request')->twice()->andReturn($requestMock1, $requestMock2);
+        $facebookMock->shouldReceive('sendBatchRequest')->once()->andReturn($responseBatchMock);
+
+        $graphData = $facebook->getPageBatchPostsInsightsMetricData(
+            $postIds, 
+            ['post_impressions', 'post_fan_reach', 'post_consumptions'],
+            'total_value'
+        );
+
+        $this->assertEquals($graphData['11111_22222']['post_impressions'], 150);
+        $this->assertEquals($graphData['11111_22222']['post_fan_reach'], 300);
+        $this->assertEquals($graphData['11111_22222']['post_consumptions'], 75);
+
+        $this->assertEquals($graphData['33333_444444']['post_impressions'], 250);
+        $this->assertEquals($graphData['33333_444444']['post_fan_reach'], 500);
+        $this->assertEquals($graphData['33333_444444']['post_consumptions'], 125);
     }
 
     public function testGetPagePostInsightsMetricDataReturnsEmptyOnNullResponse()
