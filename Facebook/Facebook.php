@@ -139,6 +139,36 @@ class Facebook
     }
 
     /*
+     * Get page insights for total value metrics, for a given date range
+     */
+    public function getPageInsightsForTotalValueMetrics($pageId, $metrics, $period, $since, $until)
+    {
+        $params = [
+            "metric" => join(",", $metrics),
+            "metric_type" => "total_value",
+            "period" => $period,
+            "since" => $since,
+            "until" => $until,
+        ];
+
+        $data = [];
+        $response = $this->sendRequest("GET", "/{$pageId}/insights", $params);
+
+        if (!empty($response)) {
+            $decodedBody = $response->getDecodedBody();
+
+            if (!empty($decodedBody) && is_array($decodedBody)) {
+                $responseData = $decodedBody["data"];
+                foreach ($responseData as $metric) {
+                    $data[$metric["name"]] = $metric["total_value"]["value"];
+                }
+            }
+        }
+
+        return $data;
+    }
+
+    /*
      * Get Instagram Graph node metadata
      */
     public function getInstagramGraphNodeMetadata($nodeId, $fields)

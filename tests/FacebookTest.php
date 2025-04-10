@@ -429,9 +429,9 @@ class FacebookTest extends \PHPUnit\Framework\TestCase
 
         $facebook = new Facebook();
         $responseMock = m::mock('\Facebook\FacebookResponse')
-        ->shouldReceive('getDecodedBody')
-        ->once()
-        ->andReturn($decodedAudienceData)
+            ->shouldReceive('getDecodedBody')
+            ->once()
+            ->andReturn($decodedAudienceData)
             ->getMock();
         $facebookMock = m::mock('\Facebook\Facebook');
         $facebookMock->shouldReceive('sendRequest')->once()->andReturn($responseMock);
@@ -1805,5 +1805,110 @@ class FacebookTest extends \PHPUnit\Framework\TestCase
             'reach' => 123,
             'views' => 500
         ]);
+    }
+
+    public function testGetPageInsightsForTotalValueMetrics()
+    {
+        $decodedResponseData = [
+            'data' => [
+                [
+                    'name' => 'page_impressions',
+                    'period' => 'day',
+                    'total_value' => [
+                        'value' => 500
+                    ]
+                ],
+                [
+                    'name' => 'page_engaged_users',
+                    'period' => 'day',
+                    'total_value' => [
+                        'value' => 100
+                    ]
+                ]
+            ]
+        ];
+
+        $facebook = new Facebook();
+        $responseMock = m::mock('\Facebook\FacebookResponse')
+            ->shouldReceive('getDecodedBody')
+            ->once()
+            ->andReturn($decodedResponseData)
+            ->getMock();
+        $facebookMock = m::mock('\Facebook\Facebook');
+
+        $metrics = ['page_impressions', 'page_engaged_users'];
+        $period = 'day';
+        $since = '1493826552';
+        $until = '1496418552';
+        $params = [
+            'metric' => join(',', $metrics),
+            'metric_type' => 'total_value',
+            'period' => $period,
+            'since' => $since,
+            'until' => $until,
+        ];
+
+        $facebookMock->shouldReceive('sendRequest')
+            ->once()
+            ->with('GET', '/' . self::FB_PAGE_ID . '/insights', $params)
+            ->andReturn($responseMock);
+        $facebook->setFacebookLibrary($facebookMock);
+
+        $response = $facebook->getPageInsightsForTotalValueMetrics(
+            self::FB_PAGE_ID,
+            $metrics,
+            $period,
+            $since,
+            $until
+        );
+
+        $this->assertEquals(500, $response['page_impressions']);
+        $this->assertEquals(100, $response['page_engaged_users']);
+    }
+
+    public function testGetPageInsightsForTotalValueMetricsEmptyResponse()
+    {
+        $facebook = new Facebook();
+        $responseMock = m::mock('\Facebook\FacebookResponse')
+            ->shouldReceive('getDecodedBody')
+            ->once()
+            ->andReturn(['data' => []])
+            ->getMock();
+        $facebookMock = m::mock('\Facebook\Facebook');
+        $facebookMock->shouldReceive('sendRequest')->once()->andReturn($responseMock);
+        $facebook->setFacebookLibrary($facebookMock);
+
+        $response = $facebook->getPageInsightsForTotalValueMetrics(
+            self::FB_PAGE_ID,
+            ['page_impressions'],
+            'day',
+            '1493826552',
+            '1496418552'
+        );
+
+        $this->assertEquals([], $response);
+    }
+
+    public function testGetPageInsightsForTotalValueMetricsNullResponse()
+    {
+        $facebook = new Facebook();
+        $responseMock = m::mock('\Facebook\FacebookResponse')
+            ->shouldReceive('getDecodedBody')
+            ->once()
+            ->andReturn(null)
+            ->getMock();
+        $facebookMock = m::mock('\Facebook\Facebook');
+        $facebookMock->shouldReceive('sendRequest')->once()->andReturn($responseMock);
+        $facebook->setFacebookLibrary($facebookMock);
+
+        $response = $facebook->getPageInsightsForTotalValueMetrics(
+            self::FB_PAGE_ID,
+            ['page_impressions'],
+            'day',
+            '1493826552',
+            '1496418552'
+        );
+
+        $this->assertEquals([], $response);
     }
 }
