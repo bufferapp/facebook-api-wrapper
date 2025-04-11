@@ -82,8 +82,8 @@ class Facebook
             $intervals = $this->getIntervalsForPeriod($since, $until);
 
             foreach ($intervals as $interval) {
-                $params["since"] = $interval['since'];
-                $params["until"] = $interval['until'];
+                $params["since"] = $interval["since"];
+                $params["until"] = $interval["until"];
                 $requests[] = $this->createRequest("GET", "/{$pageId}/insights", $params);
             }
 
@@ -166,6 +166,56 @@ class Facebook
         }
 
         return $data;
+    }
+
+    /*
+     * Get page insights for total value metrics in batch for multiple date ranges
+     */
+    public function getPageInsightsBatchTotalValueMetrics($pageId, $metrics, $period, $days)
+    {
+        $result = [];
+        $metricsString = join(",", $metrics);
+        $batchSize = 50; // Facebook's batch request limit
+
+        // Process days in chunks of 50
+        $dayChunks = array_chunk($days, $batchSize);
+
+        foreach ($dayChunks as $chunk) {
+            $batchRequests = [];
+
+            // Create a batch request for each date range in this chunk
+            foreach ($chunk as $day) {
+                $params = [
+                    "metric" => $metricsString,
+                    "metric_type" => "total_value",
+                    "period" => $period,
+                    "since" => $day["since"],
+                    "until" => $day["until"],
+                ];
+
+                $request = $this->createRequest("GET", "/{$pageId}/insights", $params);
+                $batchRequests[$day["since"]] = $request;
+            }
+
+            // Send this batch of requests
+            $responses = $this->sendBatchRequest($batchRequests);
+            if (!empty($responses)) {
+                foreach ($responses as $timestamp => $response) {
+                    $decodedBody = $response->getDecodedBody();
+
+                    if (!empty($decodedBody) && is_array($decodedBody)) {
+                        $responseData = $decodedBody["data"];
+                        $data = [];
+                        foreach ($responseData as $metric) {
+                            $data[$metric["name"]] = $metric["total_value"]["value"];
+                        }
+                        $result[$timestamp] = $data;
+                    }
+                }
+            }
+        }
+
+        return $result;
     }
 
     /*
