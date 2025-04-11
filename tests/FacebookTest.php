@@ -1911,4 +1911,238 @@ class FacebookTest extends \PHPUnit\Framework\TestCase
 
         $this->assertEquals([], $response);
     }
+
+    public function testGetPageInsightsBatchTotalValueMetrics()
+    {
+        $decodedResponseData = [
+            'data' => [
+                [
+                    'name' => 'page_impressions',
+                    'period' => 'day',
+                    'total_value' => [
+                        'value' => 500
+                    ]
+                ],
+                [
+                    'name' => 'page_engaged_users',
+                    'period' => 'day',
+                    'total_value' => [
+                        'value' => 100
+                    ]
+                ]
+            ]
+        ];
+
+        $facebook = new Facebook();
+        $responseMock = m::mock('\Facebook\FacebookResponse')
+            ->shouldReceive('getDecodedBody')
+            ->times(102)
+            ->andReturn($decodedResponseData)
+            ->getMock();
+
+        $responses = [];
+        for ($i = 0; $i < 51; $i++) {
+            $responses['1493826552_' . $i] = $responseMock;
+        }
+
+        $getIteratorMock = new ArrayIterator($responses);
+        $responseBatchMock = m::mock('\Facebook\FacebookBatchResponse')
+            ->shouldReceive('getIterator')
+            ->times(2)
+            ->andReturn($getIteratorMock)
+            ->getMock();
+
+        $requestMock = m::mock('\Facebook\FacebookRequest');
+        $facebookMock = m::mock('\Facebook\Facebook');
+        $facebook->setFacebookLibrary($facebookMock);
+
+        $metrics = ['page_impressions', 'page_engaged_users'];
+        $period = 'day';
+        $days = [];
+        for ($i = 0; $i < 51; $i++) {
+            $days[] = [
+                'since' => '1493826552_' . $i,
+                'until' => '1493912952_' . $i
+            ];
+        }
+
+        $facebookMock->shouldReceive('request')->times(51)->andReturn($requestMock);
+        $facebookMock->shouldReceive('sendBatchRequest')->times(2)->andReturn($responseBatchMock);
+
+        $response = $facebook->getPageInsightsBatchTotalValueMetrics(
+            self::FB_PAGE_ID,
+            $metrics,
+            $period,
+            $days
+        );
+
+        $this->assertCount(51, $response);
+        foreach ($response as $timestamp => $data) {
+            $this->assertEquals(500, $data['page_impressions']);
+            $this->assertEquals(100, $data['page_engaged_users']);
+        }
+    }
+
+    public function testGetPageInsightsBatchTotalValueMetricsEmptyResponse()
+    {
+        $facebook = new Facebook();
+        $responseMock = m::mock('\Facebook\FacebookResponse')
+            ->shouldReceive('getDecodedBody')
+            ->once()
+            ->andReturn(['data' => []])
+            ->getMock();
+
+        $getIteratorMock = new ArrayIterator([
+            '1493826552' => $responseMock
+        ]);
+
+        $responseBatchMock = m::mock('\Facebook\FacebookBatchResponse')
+            ->shouldReceive('getIterator')
+            ->once()
+            ->andReturn($getIteratorMock)
+            ->getMock();
+
+        $requestMock = m::mock('\Facebook\FacebookRequest');
+        $facebookMock = m::mock('\Facebook\Facebook');
+        $facebook->setFacebookLibrary($facebookMock);
+
+        $metrics = ['page_impressions'];
+        $period = 'day';
+        $days = [
+            [
+                'since' => '1493826552',
+                'until' => '1493912952'
+            ]
+        ];
+
+        $facebookMock->shouldReceive('request')->once()->andReturn($requestMock);
+        $facebookMock->shouldReceive('sendBatchRequest')->once()->andReturn($responseBatchMock);
+
+        $response = $facebook->getPageInsightsBatchTotalValueMetrics(
+            self::FB_PAGE_ID,
+            $metrics,
+            $period,
+            $days
+        );
+
+        $this->assertEquals([
+            '1493826552' => []
+        ], $response);
+    }
+
+    public function testGetPageInsightsBatchTotalValueMetricsNullResponse()
+    {
+        $facebook = new Facebook();
+        $responseMock = m::mock('\Facebook\FacebookResponse')
+            ->shouldReceive('getDecodedBody')
+            ->once()
+            ->andReturn(null)
+            ->getMock();
+
+        $getIteratorMock = new ArrayIterator([
+            '1493826552' => $responseMock
+        ]);
+
+        $responseBatchMock = m::mock('\Facebook\FacebookBatchResponse')
+            ->shouldReceive('getIterator')
+            ->once()
+            ->andReturn($getIteratorMock)
+            ->getMock();
+
+        $requestMock = m::mock('\Facebook\FacebookRequest');
+        $facebookMock = m::mock('\Facebook\Facebook');
+        $facebook->setFacebookLibrary($facebookMock);
+
+        $metrics = ['page_impressions'];
+        $period = 'day';
+        $days = [
+            [
+                'since' => '1493826552',
+                'until' => '1493912952'
+            ]
+        ];
+
+        $facebookMock->shouldReceive('request')->once()->andReturn($requestMock);
+        $facebookMock->shouldReceive('sendBatchRequest')->once()->andReturn($responseBatchMock);
+
+        $response = $facebook->getPageInsightsBatchTotalValueMetrics(
+            self::FB_PAGE_ID,
+            $metrics,
+            $period,
+            $days
+        );
+
+        $this->assertEquals([], $response);
+    }
+
+    public function testGetPageInsightsBatchTotalValueMetricsBatchSizeLimit()
+    {
+        $decodedResponseData = [
+            'data' => [
+                [
+                    'name' => 'page_impressions',
+                    'period' => 'day',
+                    'total_value' => [
+                        'value' => 500
+                    ]
+                ],
+                [
+                    'name' => 'page_engaged_users',
+                    'period' => 'day',
+                    'total_value' => [
+                        'value' => 100
+                    ]
+                ]
+            ]
+        ];
+
+        $facebook = new Facebook();
+        $responseMock = m::mock('\Facebook\FacebookResponse')
+            ->shouldReceive('getDecodedBody')
+            ->times(102)
+            ->andReturn($decodedResponseData)
+            ->getMock();
+
+        $responses = [];
+        for ($i = 0; $i < 51; $i++) {
+            $responses['1493826552_' . $i] = $responseMock;
+        }
+
+        $getIteratorMock = new ArrayIterator($responses);
+        $responseBatchMock = m::mock('\Facebook\FacebookBatchResponse')
+            ->shouldReceive('getIterator')
+            ->times(2)
+            ->andReturn($getIteratorMock)
+            ->getMock();
+
+        $requestMock = m::mock('\Facebook\FacebookRequest');
+        $facebookMock = m::mock('\Facebook\Facebook');
+        $facebook->setFacebookLibrary($facebookMock);
+
+        $metrics = ['page_impressions', 'page_engaged_users'];
+        $period = 'day';
+        $days = [];
+        for ($i = 0; $i < 51; $i++) {
+            $days[] = [
+                'since' => '1493826552_' . $i,
+                'until' => '1493912952_' . $i
+            ];
+        }
+
+        $facebookMock->shouldReceive('request')->times(51)->andReturn($requestMock);
+        $facebookMock->shouldReceive('sendBatchRequest')->times(2)->andReturn($responseBatchMock);
+
+        $response = $facebook->getPageInsightsBatchTotalValueMetrics(
+            self::FB_PAGE_ID,
+            $metrics,
+            $period,
+            $days
+        );
+
+        $this->assertCount(51, $response);
+        foreach ($response as $timestamp => $data) {
+            $this->assertEquals(500, $data['page_impressions']);
+            $this->assertEquals(100, $data['page_engaged_users']);
+        }
+    }
 }
