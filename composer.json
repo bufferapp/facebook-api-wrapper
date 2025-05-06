@@ -4,6 +4,7 @@
 	"keywords": ["facebook", "facebook api", "facebook php"],
 	"type": "package",
 	"license": "Apache-2.0",
+	"abandoned": true,
 	"authors": [{
 		"name": "Tigran Hakobyan"
 	}],
