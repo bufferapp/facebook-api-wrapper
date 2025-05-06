@@ -1,3 +1,6 @@
+# Deprecated
+As of May 6th, 2025, this library is deprecated and no new changes will be applied.
+
 # facebook-api-wrapper
 Buffer's Facebook PHP API wrapper
 
